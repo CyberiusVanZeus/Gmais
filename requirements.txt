@@ -1,0 +1,23 @@
+# --- GMAIS core -------------------------------------------------------------
+# The factorial ablation, Security-Tax computation, GTKG and governance layer
+# depend only on the Python 3.11 standard library.
+
+# --- Web interface ----------------------------------------------------------
+flask>=3.0
+
+# --- Optional: non-parametric triangulation (Friedman / Wilcoxon) -----------
+# Enables gmais.analysis.nonparametric_triangulation; degrades gracefully if absent.
+numpy>=1.24
+scipy>=1.10
+
+# --- Optional: real local/remote inference backend --------------------------
+# Required only for `--backend openai` (llama.cpp / LM Studio / Ollama / OpenAI).
+openai>=1.30
+
+# --- Optional: legacy interface language handling ---------------------------
+python-dotenv>=1.0
+langdetect>=1.0.9
+deep-translator>=1.11
+
+# --- Testing ----------------------------------------------------------------
+pytest>=7.0

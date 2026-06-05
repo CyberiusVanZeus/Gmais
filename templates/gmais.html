@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GMAIS &mdash; Governance-Mediated Intelligence Analysis System</title>
+  <style>
+    :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --fg:#e6edf3; --mut:#8b949e; --ok:#3fb950; --bad:#f85149; --acc:#58a6ff; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; padding: 2rem; }
+    h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+    .sub { color: var(--mut); margin-bottom: 1.5rem; font-size: .9rem; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
+    form { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+    select, button { background: #21262d; color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: .5rem .75rem; font-size: .9rem; }
+    button { background: var(--acc); color: #0d1117; font-weight: 600; cursor: pointer; border: none; }
+    .scenario-text { color: var(--mut); font-size: .85rem; line-height: 1.5; max-height: 7rem; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th, td { text-align: left; padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
+    th { color: var(--mut); font-weight: 600; }
+    .yes { color: var(--ok); } .no { color: var(--bad); }
+    .pill { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; border: 1px solid var(--line); }
+    .gold { color: var(--acc); }
+    code { background:#21262d; padding:.05rem .35rem; border-radius:4px; }
+    .legend { color: var(--mut); font-size: .78rem; margin-top: .75rem; }
+  </style>
+</head>
+<body>
+  <h1>GMAIS &mdash; Governance-Mediated Intelligence Analysis System</h1>
+  <div class="sub">Minimum Viable Architecture &middot; 2&times;2 factorial ablation (Validation &times; Governance) &middot; offline deterministic backend</div>
+
+  <div class="panel">
+    <form method="post">
+      <label for="sid">Scenario:</label>
+      <select name="sid" id="sid" onchange="this.form.submit()">
+        {% for s in scenarios %}
+          <option value="{{ s.sid }}" {% if s.sid == scenario.sid %}selected{% endif %}>
+            {{ s.sid }} &mdash; {{ s.tier }} tier ({{ s.claims|length }} claims, {{ s.injected_cids|length }} injected)
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit">Analyse</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <div style="margin-bottom:.5rem;">
+      <strong>{{ scenario.sid }}</strong>
+      &middot; gold hypothesis <span class="gold">{{ gold }}</span>
+      &middot; injected claims <code>{{ injected }}</code>
+    </div>
+    <div class="scenario-text">{{ scenario.text }}</div>
+  </div>
+
+  <div class="panel">
+    <table>
+      <thead>
+        <tr>
+          <th>Cell</th><th>V</th><th>G</th>
+          <th>Predicted</th><th>Correct</th><th>Injections detected</th>
+          <th>Conf</th><th>Latency (ms)</th><th>&Delta;L</th>
+          <th>Tokens</th><th>&Delta;C</th><th>Gov events</th><th>Redacted</th><th>Audit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.cell }}</strong></td>
+          <td>{{ '1' if r.validation else '0' }}</td>
+          <td>{{ '1' if r.governance else '0' }}</td>
+          <td class="gold">{{ r.predicted }}</td>
+          <td class="{{ 'yes' if r.correct else 'no' }}">{{ '✓' if r.correct else '✗' }}</td>
+          <td><code>{{ r.detected }}</code></td>
+          <td>{{ '%.2f'|format(r.confidence) }}</td>
+          <td>{{ '%.1f'|format(r.latency_ms) }}</td>
+          <td>{{ '+%.1f'|format(r.delta_latency) if r.delta_latency else '—' }}</td>
+          <td>{{ r.tokens }}</td>
+          <td>{{ '+%d'|format(r.delta_tokens) if r.delta_tokens else '—' }}</td>
+          <td>{{ r.events if r.events is not none else '—' }}</td>
+          <td>{{ r.redacted if r.redacted is not none else '—' }}</td>
+          <td>
+            {% if r.audit_intact is none %}<span class="pill">n/a</span>
+            {% elif r.audit_intact %}<span class="pill yes">intact</span>
+            {% else %}<span class="pill no">broken</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="legend">
+      &Delta;L and &Delta;C are latency and token differentials versus the Baseline (V=0, G=0) cell &mdash; the raw inputs to the
+      Security Tax <code>ST = &alpha;&middot;z(&Delta;L) + &beta;&middot;z(&Delta;C)</code>. Validation drives accuracy and injection
+      detection (H1); governance drives the latency/token tax (H2); their coupling is the interaction (H3).
+    </div>
+  </div>
+</body>
+</html>
