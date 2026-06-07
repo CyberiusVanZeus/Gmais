@@ -1,12 +1,12 @@
 # GMAIS — Governance-Mediated Intelligence Analysis System
 
-A reference implementation of the architecture and evaluation protocol described in
+An implementation of the architecture and evaluation protocol described in
 the thesis *"Governance-Mediated Intelligence Analysis System (GMAIS): Empirical
 Quantification of the Multi-Agent Security Tax in Intelligence Workflows."*
 
 GMAIS is a **Minimum Viable Architecture** that embeds declassified intelligence
-tradecraft — Admiralty source grading, Analysis of Competing Hypotheses (ACH),
-need-to-know governance and end-to-end auditability — inside a multi-agent
+tradecraft consisting of the Admiralty source grading, Analysis of Competing Hypotheses (ACH),
+need-to-know governance and end-to-end auditability, all inside a multi-agent
 analytical pipeline, and instruments it to **quantify the multi-agent Security
 Tax** through a pre-registered 2×2 factorial ablation.
 
@@ -70,7 +70,7 @@ pure function of configuration.
 | `gmais/metrics.py` | 3.3.4/3.3.5 | Confusion matrix, Brier, Security Tax (Eq. 3.2–3.8) |
 | `gmais/ablation.py` | 3.3.3 | Algorithm 1: the factorial ablation runner |
 | `gmais/analysis.py` | 3.3.6/3.3.7 | Effect estimates, policy bands, non-parametric triangulation |
-| `gmais/llm/` | 3.3.2 | Pluggable backend (deterministic mock / OpenAI-compatible) |
+| `gmais/llm/` | 3.3.2 | Pluggable backend ( OpenAI-compatible / Local model) |
 | `gmais/webapp.py` | — | Flask UI for interactive per-cell comparison |
 
 ## Quick start
