@@ -19,9 +19,10 @@ Reviewer comments are quoted in **bold**; the change made follows each.
 
 ## 1. "The authors should provide the actual experimental results from the planned 540 observations."
 
-**Done.** The full campaign was executed: 135 scenarios (45 per complexity tier)
-× 4 factorial cells = **540 observations**, matching the pre-registered design
-exactly. The complete observation matrix is included as `results/observations.csv`
+**Done, twice.** The full campaign was executed against hosted `gpt-4o-mini`
+(**540 observations**, 2,700 API calls, 1,172,513 tokens, **$0.59**, wall clock
+~35 min) and again against the deterministic backend as a controlled comparison.
+Both match the pre-registered design exactly. The complete observation matrix is included as `results/observations.csv`
 (540 rows × 31 columns), and the campaign completes in ~13 s on a commodity CPU
 with no GPU, no API key and no network access.
 
@@ -122,12 +123,31 @@ adjustment; everything else is labelled exploratory. Each main effect is tested
 because a marginal main effect is only interpretable when the interaction is
 negligible and H3 exists precisely to test that.
 
-| | Test | Result | Verdict |
+Results are now reported from **two campaigns** over the identical design: a
+**primary** run against hosted `gpt-4o-mini` (2,700 billable calls, $0.59) giving
+genuinely measured latency and exact token counts, and the deterministic
+offline run as a **controlled comparison** with inference variance removed. The
+analytical columns are identical across both; only the cost columns differ.
+
+| | Test | Hosted (primary) | Deterministic |
 |:--|:--|:--|:--|
-| **H1** | Exact McNemar on discordant pairs | OR = 53.0 (G=0), 40.3 (G=1), both *p*<sub>Holm</sub> < .0001; main effect **+0.507 [+0.426, +0.585]** | **SUPPORTED** |
-| **H2** | Wilcoxon signed-rank, Hodges–Lehmann shift | +21.0 ms (V=0), +42.0 ms (V=1), +108 tokens; all *p*<sub>Holm</sub> < .0001, *r* = 1.00 | **SUPPORTED** |
-| **H3** | One-sample Wilcoxon on the per-scenario interaction contrast | latency **+21.0 ms**, *p*<sub>Holm</sub> < .0001; tokens +72.0; accuracy **−0.141 [−0.200, −0.082]** | **SUPPORTED** |
-| **H4** | Band proportions with Wilson intervals + α-sweep | Baseline/G-only 100% full-governance; V-only 95%, Full 97% adaptive-governance | **SUPPORTED** |
+| **H1** | Exact McNemar | **SUPPORTED** — OR 53.0 / 40.3, *p*<sub>Holm</sub> ≤ 2.2×10⁻¹⁶; effect +0.507 [+0.426, +0.585] | SUPPORTED (identical) |
+| **H2** | Wilcoxon + Hodges–Lehmann | **SPLIT** — tokens +106.2 [+97.0, +116.5], *p*<sub>Holm</sub> = 1.1×10⁻²²; **latency NOT detected**, *p*<sub>Holm</sub> = .152 | SUPPORTED on both |
+| **H3** | Paired interaction contrast | **SPLIT** — tokens +79.9 [+62.3, +98.1]; accuracy −0.141 [−0.200, −0.082]; **latency NOT detected**, *p* = .68 | SUPPORTED on both |
+| **H4** | Wilson intervals + α-sweep | **SUPPORTED** — clean band separation, stable across the sweep | SUPPORTED |
+
+**We report the H2/H3 latency channel as not supported rather than quietly
+preferring the campaign that agreed with the pre-registration.** The mechanism
+is real and the deterministic run measures it cleanly; under a real serving
+stack it is simply not detectable. Governance adds ~104 ms against a baseline
+latency SD of 900 ms and a V-only SD of 29,653 ms — an effect of **0.116 SD**.
+Token consumption, which carries no timing noise (CV ≈ 0.04 vs 1.73 for
+latency), shows the same mechanism unambiguously.
+
+The substantive consequence is a correction to the manuscript's framing: the
+Security Tax is **not principally a latency tax**. Its measurable price in
+deployment is tokens, ~5%; its latency cost is unobservable against the model's
+own variance.
 
 **On H3, the interaction is signed in opposite directions on cost and benefit**,
 which is the manuscript's most interesting result and was absent from the

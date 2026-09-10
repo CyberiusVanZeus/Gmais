@@ -1,5 +1,33 @@
 # Chapter Four — Results
 
+## 4.0 Two campaigns
+
+This chapter reports **two** campaigns over the identical 540-observation design,
+because they answer different questions and disagree in an informative way.
+
+| | Backend | What it establishes |
+|:--|:--|:--|
+| **Primary** | hosted `gpt-4o-mini`, 2,700 billable calls, $0.59 | Obtained results under **real inference**, with genuinely measured end-to-end latency and exact API token counts |
+| **Controlled comparison** | deterministic offline backend | The same design with inference-time variance removed, isolating the governance mechanism's own cost |
+
+The analytical columns are **identical across both** — accuracy 0.1926 / 0.7704 /
+0.3333 / 0.7704 in either run — because the tradecraft logic is Python and does
+not consume model output (see L10). The backends differ only in the cost columns.
+That is precisely what makes the pair informative: the deterministic campaign
+measures the governance mechanism, and the hosted campaign measures whether that
+cost is *detectable* in deployment.
+
+**The headline result of the pair is that it is not, on the latency channel.**
+Governance adds ~104 ms; real inference latency has a standard deviation of
+900 ms at baseline and 29,653 ms under validation. The effect is **0.116 SD** —
+real, but buried. On the token channel, which carries no timing noise, the same
+mechanism is unmistakable.
+
+Results below are from the **primary (hosted)** campaign unless labelled
+otherwise.
+
+---
+
 All results in this chapter come from a single campaign executed with
 
 ```sh
@@ -103,7 +131,43 @@ therefore be narrowed: GMAIS produces confidences that *rank* well but are not
 > *Governance mediation imposes a measurable and quantifiable latency and token
 > overhead.*
 
-**H2 is SUPPORTED.**
+**H2 is SPLIT: SUPPORTED on tokens, NOT SUPPORTED on latency.**
+
+This is the chapter's most important correction to the pre-registered
+expectation, and it only became visible under real inference.
+
+| Channel | Effect | Test | Verdict |
+|:--|:--|:--|:--|
+| **Tokens** | **+106.2 [+97.0, +116.5]**, +5.07% relative | *p*<sub>Holm</sub> = 1.1×10⁻²² | **SUPPORTED** |
+| **Latency** | +103.9 ms [−0.4, +217.9] (V=0); +215.4 [−127.1, +505.1] (V=1) | *p*<sub>Holm</sub> = .152 / .378 | **NOT SUPPORTED** |
+
+The reason is signal-to-noise, not absence of effect:
+
+| Cell | Latency mean | Latency SD | CV | Token mean | Token SD | CV |
+|:--|--:|--:|--:|--:|--:|--:|
+| Baseline | 3,405 ms | 900 | 0.26 | 1,372 | 84 | 0.061 |
+| G-only | 3,561 ms | 940 | 0.26 | 1,439 | 86 | 0.060 |
+| V-only | 17,155 ms | 29,653 | **1.73** | 2,972 | 121 | 0.041 |
+| Full | 15,628 ms | 7,772 | 0.50 | 3,118 | 117 | 0.037 |
+
+Token consumption is almost noiseless (CV ≈ 0.04–0.06) because it is structural:
+message and metadata volume are fixed by the topology. Latency under a hosted
+API is not — the coefficient of variation reaches 1.73 in the V-only cell, where
+four sequential critique calls each carry independent queueing and scheduling
+delay. The governance latency effect is **0.116 baseline SD**; the campaign is
+not powered to detect it, and the main-effect interval is correspondingly
+useless (−685.9 ms [−3,710.7, +1,178.4], point estimate negative through noise
+alone).
+
+**Deployment reading:** governance's latency cost is not merely affordable, it
+is *unobservable* against the model's own variance. Its real, measurable price
+is tokens — about 5%. The manuscript's framing of the Security Tax as principally
+a latency tax is not supported by evidence from a real serving stack.
+
+Against the deterministic backend, where inference variance is removed by
+construction, the same mechanism is cleanly detectable on both channels
+(*p*<sub>Holm</sub> < .0001, +3.77% latency, +6.94% tokens). Both statements are
+true; they measure different things.
 
 ### Measured cost
 
@@ -170,9 +234,14 @@ verification failed.
 
 > *Validation and governance interact rather than combining additively.*
 
-**H3 is SUPPORTED**, and this is the campaign's most consequential result,
-because the interaction is **signed in opposite directions on cost and on
-benefit**.
+**H3 is SPLIT, on the same channel logic as H2**: the interaction is
+unmistakable on tokens (+79.9 [+62.3, +98.1], *p* = 7.9×10⁻¹³) and undetectable
+on latency (*p*<sub>Holm</sub> = .68, interval −7,667 to +1,954 — pure noise).
+The accuracy interaction stands at **−0.141 [−0.200, −0.082]**.
+
+Read on the channels where it is measurable, the finding is unchanged and
+remains the campaign's most consequential: the interaction is **signed in
+opposite directions on cost and on benefit**.
 
 The interaction contrast is formed within each scenario as
 (Full − V-only) − (G-only − Baseline), giving 135 values tested against zero:
@@ -284,10 +353,14 @@ carried into Limitations as L1.
 
 | Hypothesis | Verdict | Principal evidence |
 |:--|:--|:--|
-| **H1** Validation raises accuracy | **SUPPORTED** | +0.507 [+0.426, +0.585]; McNemar OR 53.0 / 40.3, *p*<sub>Holm</sub> < .0001 |
-| **H2** Governance imposes measurable overhead | **SUPPORTED** | ≈85 µs/event measured (median of 9 campaigns); +3.77% latency, +6.94% tokens; all *p*<sub>Holm</sub> < .0001 |
-| **H3** The mechanisms interact | **SUPPORTED** | Super-additive on cost (+21.0 ms), sub-additive on accuracy (−0.141) |
-| **H4** ST maps to policy bands | **SUPPORTED** | Clean band separation, stable across the full α-sweep |
+| **H1** Validation raises accuracy | **SUPPORTED** (both campaigns) | +0.507 [+0.426, +0.585]; McNemar OR 53.0 / 40.3, *p*<sub>Holm</sub> ≤ 2.2×10⁻¹⁶ |
+| **H2** Governance imposes measurable overhead | **SPLIT** — tokens SUPPORTED, latency NOT | Tokens +106.2 [+97.0, +116.5], *p*<sub>Holm</sub> = 1.1×10⁻²²; latency *p*<sub>Holm</sub> = .152, effect 0.116 SD |
+| **H3** The mechanisms interact | **SPLIT** — tokens SUPPORTED, latency NOT | Tokens +79.9 [+62.3, +98.1]; accuracy −0.141 [−0.200, −0.082]; latency *p* = .68 |
+| **H4** ST maps to policy bands | **SUPPORTED** (both campaigns) | Clean band separation, stable across the full α-sweep |
+
+Under the deterministic backend H2 and H3 are supported on **both** channels; the
+split appears only under real inference, and is a statement about detectability
+in deployment rather than about the mechanism.
 
 Three caveats travel with these conclusions and are developed in
 `LIMITATIONS.md`: the cost estimates are upper bounds because the Validator's

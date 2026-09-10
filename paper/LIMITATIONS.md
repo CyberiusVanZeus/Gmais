@@ -33,7 +33,33 @@ a results chapter.
 
 ---
 
-## L2 — End-to-end latency is modelled, not measured
+## L2 — RESOLVED, and the resolution overturned an H2/H3 conclusion
+
+**This limitation has been discharged by running the campaign against a hosted
+model** (`gpt-4o-mini`, 2,700 calls, $0.59). End-to-end latency is now measured,
+not modelled, and token counts are exact API usage.
+
+The result did not confirm the earlier reading. Under real inference the
+governance latency effect is **not statistically detectable** (*p*<sub>Holm</sub>
+= .152): it is ~104 ms against a baseline latency SD of 900 ms and a V-only SD of
+29,653 ms, i.e. **0.116 SD**. The earlier estimate of "+3.77%, conservative" was
+an artefact of a backend with no inference variance. The token channel is
+unaffected and strongly supported.
+
+We considered reporting only the deterministic campaign, in which H2 and H3 are
+cleanly supported on both channels. We did not, because the hosted campaign is
+the one that speaks to deployment, and preferring the agreeable result would be
+exactly the practice the pre-registration exists to prevent.
+
+The residual limitation is narrower: results come from **one** hosted model on
+**one** provider in a single session, so the latency variance observed is that
+serving stack's, not a general property. A local quantised model — the thesis's
+actual deployment target — would have different variance and might well make the
+latency effect detectable again.
+
+---
+
+## L2b — What the original L2 said (retained for the record)
 
 **Evidence.** The campaign runs on a deterministic backend. Governance mediation,
 Admiralty grading, ACH evaluation, audit chaining and redaction are all **really
@@ -153,6 +179,25 @@ confidences are usable for **ranking** competing products and **not** yet usable
 as **absolute** probability statements in an assessment. Post-hoc recalibration
 (isotonic or Platt scaling on a held-out split) is the obvious remedy and is not
 implemented.
+
+---
+
+## L10 — The language model does not affect the analytical result
+
+The Worker tier and Validator call the model, but the hypothesis decision is
+computed from the scenario's evidence structure and the Admiralty/ACH logic in
+Python; the completion text is consumed only for latency and token telemetry.
+Accuracy, detection, Brier and rubric scores are therefore **bit-identical**
+across the deterministic and hosted campaigns (0.1926 / 0.7704 / 0.3333 /
+0.7704 in both).
+
+This is a genuine architectural limitation, not a measurement artefact: GMAIS as
+implemented is an *instrumented tradecraft pipeline* whose analytical quality is
+independent of the model driving it. The H1 result should be read as evidence
+that **structured validation logic** raises accuracy, not that a language model
+does. Making the agents' reasoning genuinely model-dependent — having the ACH
+consistency assessment come from the model rather than the corpus structure — is
+the most substantial piece of future work the evaluation identifies.
 
 ---
 

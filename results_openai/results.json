@@ -1,0 +1,1056 @@
+{
+  "config": {
+    "seed": 20260605,
+    "n_workers": 3,
+    "worker_temperature": 0.7,
+    "validator_temperature": 0.2,
+    "ci_width_threshold": 0.15,
+    "convergence_threshold": 0.85,
+    "max_critique_iterations": 4,
+    "theta_policy": 0.6,
+    "sensitivity_threshold": 0.7,
+    "delegation_secret": "gmais-delegation-key",
+    "queue_saturation_margin": 0.15,
+    "st_alpha": 0.5,
+    "st_beta": 0.5,
+    "st_band_low": 0.5,
+    "st_band_high": 1.5,
+    "scenarios_per_tier": 45,
+    "noise_enabled": true,
+    "grading_error_rate": 0.12,
+    "injection_camouflage_rate": 0.18,
+    "provenance_degradation_rate": 0.1,
+    "peer_anchoring_rate": 0.22,
+    "measure_wallclock": true,
+    "timing_warmup_observations": 12,
+    "backend": "openai",
+    "model": "gpt-4o-mini"
+  },
+  "corpus": {
+    "scenarios": 135,
+    "hypotheses": 270,
+    "sources": 1080,
+    "claims": 1080,
+    "scenarios_per_tier": 45,
+    "claims_per_tier": {
+      "high": 495,
+      "low": 225,
+      "medium": 360
+    },
+    "injected_per_tier": {
+      "high": 135,
+      "low": 45,
+      "medium": 90
+    },
+    "tolerance_conformance": {
+      "flesch_kincaid": 0.0,
+      "temporal_span": 1.0,
+      "ambiguity_index": 1.0
+    }
+  },
+  "noise_model": {
+    "enabled": true,
+    "seed": 20260605,
+    "grading_error_rate": 0.12,
+    "injection_camouflage_rate": 0.18,
+    "provenance_degradation_rate": 0.1,
+    "peer_anchoring_rate": 0.22,
+    "realised": {
+      "injected_claims": 270,
+      "camouflaged_claims": 59,
+      "realised_camouflage_rate": 0.2185,
+      "genuine_claims": 810,
+      "degraded_claims": 77,
+      "realised_degradation_rate": 0.0951
+    }
+  },
+  "environment": {
+    "python_version": "3.12.3",
+    "python_implementation": "CPython",
+    "platform": "Linux-6.8.0-139-generic-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "cpu_count": 3,
+    "clock": "time.perf_counter_ns",
+    "clock_resolution_ns": 40.0
+  },
+  "per_cell_metrics": {
+    "Baseline": {
+      "n": 135,
+      "hypothesis_accuracy": 0.1926,
+      "brier_score": 0.25,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 270,
+        "tn": 810,
+        "accuracy": 0.75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "audit_failures": 0,
+      "mean_latency_ms": 3404.879,
+      "mean_tokens": 1372.2,
+      "mean_measured_latency_ms": 3411.9465,
+      "mean_measured_governance_ms": 0.0,
+      "mean_anchored_workers": 0.5407,
+      "mean_peer_bias_exposure": 14.0
+    },
+    "V-only": {
+      "n": 135,
+      "hypothesis_accuracy": 0.7704,
+      "brier_score": 0.1849,
+      "detection": {
+        "tp": 195,
+        "fp": 3,
+        "fn": 75,
+        "tn": 807,
+        "accuracy": 0.9278,
+        "precision": 0.9848,
+        "recall": 0.7222,
+        "f1": 0.8333
+      },
+      "audit_failures": 0,
+      "mean_latency_ms": 17155.3,
+      "mean_tokens": 2971.5,
+      "mean_measured_latency_ms": 3808.1359,
+      "mean_measured_governance_ms": 0.0,
+      "mean_anchored_workers": 0.5407,
+      "mean_peer_bias_exposure": 14.0
+    },
+    "G-only": {
+      "n": 135,
+      "hypothesis_accuracy": 0.3333,
+      "brier_score": 0.25,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 270,
+        "tn": 810,
+        "accuracy": 0.75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "audit_failures": 0,
+      "mean_latency_ms": 3560.586,
+      "mean_tokens": 1439.2,
+      "mean_measured_latency_ms": 3546.1493,
+      "mean_measured_governance_ms": 0.7072,
+      "mean_anchored_workers": 0.0,
+      "mean_peer_bias_exposure": 0.0
+    },
+    "Full": {
+      "n": 135,
+      "hypothesis_accuracy": 0.7704,
+      "brier_score": 0.1849,
+      "detection": {
+        "tp": 195,
+        "fp": 3,
+        "fn": 75,
+        "tn": 807,
+        "accuracy": 0.9278,
+        "precision": 0.9848,
+        "recall": 0.7222,
+        "f1": 0.8333
+      },
+      "audit_failures": 0,
+      "mean_latency_ms": 15627.691,
+      "mean_tokens": 3118.4,
+      "mean_measured_latency_ms": 3780.5701,
+      "mean_measured_governance_ms": 1.0411,
+      "mean_anchored_workers": 0.0,
+      "mean_peer_bias_exposure": 0.0
+    }
+  },
+  "api_consumption": {
+    "model": "gpt-4o-mini",
+    "calls": 2700,
+    "prompt_tokens": 250936,
+    "completion_tokens": 921577,
+    "total_tokens": 1172513,
+    "retries": 0,
+    "failures": 0,
+    "pricing_usd_per_mtok": [
+      0.15,
+      0.6
+    ],
+    "cost_usd": 0.590587
+  },
+  "inference": {
+    "n_observations": 540,
+    "n_scenarios": 135,
+    "confirmatory_family_size": 6,
+    "multiplicity_correction": "Holm-Bonferroni",
+    "H1": {
+      "hypothesis": "H1",
+      "statement": "Embedding structured validation (Admiralty grading + ACH under bounded-rationality control) raises analytical accuracy relative to an unvalidated multi-agent baseline.",
+      "verdict": "SUPPORTED",
+      "tests": [
+        {
+          "name": "H1 | G=0: Baseline -> V-only",
+          "n_pairs": 135,
+          "test": "McNemar (exact)",
+          "statistic": 79.0,
+          "p_value": 1.3400325923359048e-22,
+          "effect_size": 53.0,
+          "effect_name": "odds ratio (discordant)",
+          "p_adjusted": 6.700162961679524e-22,
+          "detail": {
+            "n01_b_correct_only": 79,
+            "n10_a_correct_only": 1,
+            "discordant": 80,
+            "proportion_a": 0.192593,
+            "proportion_b": 0.77037
+          }
+        },
+        {
+          "name": "H1 | G=1: G-only -> Full",
+          "n_pairs": 135,
+          "test": "McNemar (exact)",
+          "statistic": 60.0,
+          "p_value": 5.377642775528102e-17,
+          "effect_size": 40.333333,
+          "effect_name": "odds ratio (discordant)",
+          "p_adjusted": 2.1510571102112408e-16,
+          "detail": {
+            "n01_b_correct_only": 60,
+            "n10_a_correct_only": 1,
+            "discordant": 61,
+            "proportion_a": 0.333333,
+            "proportion_b": 0.77037
+          }
+        },
+        {
+          "name": "H1 (exploratory): rubric composite, Baseline -> V-only",
+          "n_pairs": 135,
+          "test": "Wilcoxon signed-rank",
+          "statistic": 22.5,
+          "p_value": 3.087987056264503e-21,
+          "effect_size": 0.993697,
+          "effect_name": "rank-biserial r",
+          "shift": {
+            "estimate": 0.475,
+            "ci_low": 0.44995,
+            "ci_high": 0.525,
+            "level": 0.95
+          },
+          "detail": {
+            "median_difference": 0.6,
+            "mean_difference": 0.473879,
+            "cohens_dz": 1.693779,
+            "n_nonzero": 119
+          }
+        }
+      ],
+      "intervals": {
+        "validation_main_effect_accuracy": {
+          "estimate": 0.507407,
+          "ci_low": 0.425926,
+          "ci_high": 0.585185,
+          "level": 0.95
+        }
+      },
+      "extras": {
+        "cell_accuracy": {
+          "Baseline": 0.1926,
+          "V-only": 0.7704,
+          "G-only": 0.3333,
+          "Full": 0.7704
+        },
+        "detection": {
+          "Baseline": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 270,
+            "tn": 810,
+            "accuracy": 0.75,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "V-only": {
+            "tp": 195,
+            "fp": 3,
+            "fn": 75,
+            "tn": 807,
+            "accuracy": 0.9278,
+            "precision": 0.9848,
+            "recall": 0.7222,
+            "f1": 0.8333
+          },
+          "G-only": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 270,
+            "tn": 810,
+            "accuracy": 0.75,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Full": {
+            "tp": 195,
+            "fp": 3,
+            "fn": 75,
+            "tn": 807,
+            "accuracy": 0.9278,
+            "precision": 0.9848,
+            "recall": 0.7222,
+            "f1": 0.8333
+          }
+        },
+        "brier": {
+          "Baseline": {
+            "brier": 0.25,
+            "reliability": 0.094499,
+            "resolution": 0.0,
+            "uncertainty": 0.155501,
+            "decomposition_residual": 0.0,
+            "n_bins_occupied": 1
+          },
+          "V-only": {
+            "brier": 0.184898,
+            "reliability": 0.16638,
+            "resolution": 0.158381,
+            "uncertainty": 0.1769,
+            "decomposition_residual": 0.0,
+            "n_bins_occupied": 4
+          },
+          "G-only": {
+            "brier": 0.25,
+            "reliability": 0.027778,
+            "resolution": 0.0,
+            "uncertainty": 0.222222,
+            "decomposition_residual": 0.0,
+            "n_bins_occupied": 1
+          },
+          "Full": {
+            "brier": 0.184898,
+            "reliability": 0.16638,
+            "resolution": 0.158381,
+            "uncertainty": 0.1769,
+            "decomposition_residual": 0.0,
+            "n_bins_occupied": 4
+          }
+        },
+        "brier_bins": {
+          "Baseline": {
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              135,
+              0,
+              0,
+              0,
+              0
+            ],
+            "confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.5,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "observed": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.1925925925925926,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ]
+          },
+          "V-only": {
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              42,
+              52,
+              36,
+              5,
+              0
+            ],
+            "confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.5476238095238095,
+              0.649775,
+              0.7358833333333333,
+              0.8305999999999999,
+              NaN
+            ],
+            "observed": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.7142857142857143,
+              0.6730769230769231,
+              0.9444444444444444,
+              1.0,
+              NaN
+            ]
+          },
+          "G-only": {
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              135,
+              0,
+              0,
+              0,
+              0
+            ],
+            "confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.5,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "observed": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.3333333333333333,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ]
+          },
+          "Full": {
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              42,
+              52,
+              36,
+              5,
+              0
+            ],
+            "confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.5476238095238095,
+              0.649775,
+              0.7358833333333333,
+              0.8305999999999999,
+              NaN
+            ],
+            "observed": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.7142857142857143,
+              0.6730769230769231,
+              0.9444444444444444,
+              1.0,
+              NaN
+            ]
+          }
+        },
+        "rubric_composite_mean": {
+          "Baseline": 0.2638,
+          "V-only": 0.7377,
+          "G-only": 0.3271,
+          "Full": 0.7377
+        }
+      }
+    },
+    "H2": {
+      "hypothesis": "H2",
+      "statement": "Governance mediation (authenticated delegation, need-to-know enforcement, hash-chained audit) imposes a measurable and quantifiable latency and token overhead.",
+      "verdict": "NOT SUPPORTED",
+      "tests": [
+        {
+          "name": "H2 | V=0: latency, Baseline -> G-only",
+          "n_pairs": 135,
+          "test": "Wilcoxon signed-rank",
+          "statistic": 3700.0,
+          "p_value": 0.0506213974056807,
+          "effect_size": 0.1939,
+          "effect_name": "rank-biserial r",
+          "p_adjusted": 0.15186419221704212,
+          "shift": {
+            "estimate": 103.87625,
+            "ci_low": -0.3625,
+            "ci_high": 217.88,
+            "level": 0.95
+          },
+          "detail": {
+            "median_difference": 72.532,
+            "mean_difference": 155.706859,
+            "cohens_dz": 0.172434,
+            "n_nonzero": 135
+          }
+        },
+        {
+          "name": "H2 | V=1: latency, V-only -> Full",
+          "n_pairs": 135,
+          "test": "Wilcoxon signed-rank",
+          "statistic": 3992.0,
+          "p_value": 0.18905959585672538,
+          "effect_size": 0.130283,
+          "effect_name": "rank-biserial r",
+          "p_adjusted": 0.37811919171345076,
+          "shift": {
+            "estimate": 215.357,
+            "ci_low": -127.1195,
+            "ci_high": 505.1315,
+            "level": 0.95
+          },
+          "detail": {
+            "median_difference": 251.25,
+            "mean_difference": -1527.609,
+            "cohens_dz": -0.049335,
+            "n_nonzero": 135
+          }
+        },
+        {
+          "name": "H2: token consumption, ungoverned -> governed",
+          "n_pairs": 135,
+          "test": "Wilcoxon signed-rank",
+          "statistic": 45.5,
+          "p_value": 1.8458727508555624e-23,
+          "effect_size": 0.990087,
+          "effect_name": "rank-biserial r",
+          "p_adjusted": 1.1075236505133375e-22,
+          "shift": {
+            "estimate": 106.25,
+            "ci_low": 97.0,
+            "ci_high": 116.5,
+            "level": 0.95
+          },
+          "detail": {
+            "median_difference": 105.5,
+            "mean_difference": 106.885185,
+            "cohens_dz": 1.911759,
+            "n_nonzero": 135
+          }
+        }
+      ],
+      "intervals": {
+        "governance_main_effect_latency_ms": {
+          "estimate": -685.95107,
+          "ci_low": -3710.676006,
+          "ci_high": 1178.446856,
+          "level": 0.95
+        },
+        "governance_main_effect_tokens": {
+          "estimate": 106.885185,
+          "ci_low": 97.555185,
+          "ci_high": 116.27037,
+          "level": 0.95
+        },
+        "governance_relative_latency": {
+          "estimate": 0.065084,
+          "ci_low": 0.026673,
+          "ci_high": 0.105905,
+          "level": 0.95
+        },
+        "governance_relative_tokens": {
+          "estimate": 0.050691,
+          "ci_low": 0.040435,
+          "ci_high": 0.060988,
+          "level": 0.95
+        },
+        "measured_governance_ms_full_cell": {
+          "estimate": 1.041103,
+          "ci_low": 0.94304,
+          "ci_high": 1.154657,
+          "level": 0.95
+        }
+      },
+      "extras": {
+        "cell_latency_ms": {
+          "Baseline": 3404.879,
+          "V-only": 17155.3,
+          "G-only": 3560.586,
+          "Full": 15627.691
+        },
+        "cell_tokens": {
+          "Baseline": 1372.24,
+          "V-only": 2971.52,
+          "G-only": 1439.16,
+          "Full": 3118.36
+        },
+        "cell_measured_governance_ms": {
+          "Baseline": 0.0,
+          "V-only": 0.0,
+          "G-only": 0.70723,
+          "Full": 1.0411
+        },
+        "measured_per_event_us": {
+          "n_mediated_events": 2358,
+          "warmup_observations_discarded": 12,
+          "policy_eval_us": 24.134,
+          "audit_record_us": 39.082,
+          "redaction_us": 14.285,
+          "queue_us": 4.013,
+          "governance_total_us": 95.873
+        },
+        "cliffs_delta_latency_V0": 0.1203
+      }
+    },
+    "H3": {
+      "hypothesis": "H3",
+      "statement": "Validation and governance interact: their joint cost and joint benefit are not the sum of their separate contributions.",
+      "verdict": "NOT SUPPORTED",
+      "tests": [
+        {
+          "name": "H3: V x G interaction on latency (ms)",
+          "n_pairs": 135,
+          "test": "Wilcoxon signed-rank",
+          "statistic": 4402.0,
+          "p_value": 0.6796815505521755,
+          "effect_size": 0.040959,
+          "effect_name": "rank-biserial r",
+          "p_adjusted": 0.6796815505521755,
+          "shift": {
+            "estimate": 79.94425,
+            "ci_low": -312.409,
+            "ci_high": 423.8875,
+            "level": 0.95
+          },
+          "detail": {
+            "median_difference": 163.501,
+            "mean_difference": -1683.315859,
+            "cohens_dz": -0.054444,
+            "n_nonzero": 135
+          }
+        },
+        {
+          "name": "H3: V x G interaction on tokens",
+          "n_pairs": 135,
+          "test": "Wilcoxon signed-rank",
+          "statistic": 1297.5,
+          "p_value": 7.937682471368442e-13,
+          "effect_size": 0.713101,
+          "effect_name": "rank-biserial r",
+          "shift": {
+            "estimate": 79.5,
+            "ci_low": 60.5,
+            "ci_high": 98.0,
+            "level": 0.95
+          },
+          "detail": {
+            "median_difference": 82.0,
+            "mean_difference": 79.918519,
+            "cohens_dz": 0.739074,
+            "n_nonzero": 134
+          }
+        },
+        {
+          "name": "H3: V x G interaction on accuracy",
+          "n_pairs": 135,
+          "test": "Wilcoxon signed-rank",
+          "statistic": 0.0,
+          "p_value": 1.3071845366763019e-05,
+          "effect_size": -1.0,
+          "effect_name": "rank-biserial r",
+          "shift": {
+            "estimate": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0,
+            "level": 0.95
+          },
+          "detail": {
+            "median_difference": 0.0,
+            "mean_difference": -0.140741,
+            "cohens_dz": -0.403212,
+            "n_nonzero": 19
+          }
+        }
+      ],
+      "intervals": {
+        "interaction_latency_ms": {
+          "estimate": -1683.315859,
+          "ci_low": -7667.46914,
+          "ci_high": 1954.294521,
+          "level": 0.95
+        },
+        "interaction_tokens": {
+          "estimate": 79.918519,
+          "ci_low": 62.31,
+          "ci_high": 98.126111,
+          "level": 0.95
+        },
+        "interaction_correct": {
+          "estimate": -0.140741,
+          "ci_low": -0.2,
+          "ci_high": -0.081481,
+          "level": 0.95
+        }
+      },
+      "extras": {
+        "interaction_sign": {
+          "latency_ms": "sub-additive",
+          "tokens": "super-additive",
+          "correct": "sub-additive"
+        },
+        "note": "The accuracy interaction is exploratory: it is driven by the bias-control pathway, where governance can only help in cells that lack a Validator to absorb the same error."
+      }
+    },
+    "H4": {
+      "hypothesis": "H4",
+      "statement": "The Security Tax ST = alpha*z(dL) + beta*z(dC) partitions configurations into interpretable governance-policy bands.",
+      "verdict": "SUPPORTED",
+      "tests": [
+        {
+          "name": "H4 (exploratory): Security Tax, G-only -> Full",
+          "n_pairs": 135,
+          "test": "Wilcoxon signed-rank",
+          "statistic": 0.0,
+          "p_value": 6.714004954037857e-24,
+          "effect_size": 1.0,
+          "effect_name": "rank-biserial r",
+          "shift": {
+            "estimate": 1.64545,
+            "ci_low": 1.5858,
+            "ci_high": 1.7056,
+            "level": 0.95
+          },
+          "detail": {
+            "median_difference": 1.6658,
+            "mean_difference": 1.672783,
+            "cohens_dz": 3.388996,
+            "n_nonzero": 135
+          }
+        }
+      ],
+      "intervals": {
+        "median_st_Baseline": {
+          "estimate": -0.8908,
+          "ci_low": -0.9198,
+          "ci_high": -0.8539,
+          "level": 0.95
+        },
+        "median_st_V-only": {
+          "estimate": 0.7413,
+          "ci_low": 0.6821,
+          "ci_high": 0.7955,
+          "level": 0.95
+        },
+        "median_st_G-only": {
+          "estimate": -0.8158,
+          "ci_low": -0.8562,
+          "ci_high": -0.7914,
+          "level": 0.95
+        },
+        "median_st_Full": {
+          "estimate": 0.8172,
+          "ci_low": 0.7706,
+          "ci_high": 0.859,
+          "level": 0.95
+        }
+      },
+      "extras": {
+        "bands": {
+          "low": 0.5,
+          "high": 1.5
+        },
+        "weights": {
+          "alpha": 0.5,
+          "beta": 0.5
+        },
+        "distribution": {
+          "Baseline": {
+            "n": 135,
+            "mean": -0.8547,
+            "median": -0.8908,
+            "sd": 0.1582,
+            "iqr": [
+              -0.9984,
+              -0.6963
+            ],
+            "min": -1.1914,
+            "max": -0.5704,
+            "band_counts": {
+              "full-governance": 135
+            },
+            "band_proportions": {
+              "full-governance": {
+                "estimate": 1.0,
+                "ci_low": 0.972332,
+                "ci_high": 1.0,
+                "level": 0.95
+              },
+              "adaptive-governance": {
+                "estimate": 0.0,
+                "ci_low": 0.0,
+                "ci_high": 0.027668,
+                "level": 0.95
+              },
+              "minimal-governance": {
+                "estimate": 0.0,
+                "ci_low": 0.0,
+                "ci_high": 0.027668,
+                "level": 0.95
+              }
+            }
+          },
+          "V-only": {
+            "n": 135,
+            "mean": 0.7909,
+            "median": 0.7413,
+            "sd": 0.5736,
+            "iqr": [
+              0.541,
+              0.8971
+            ],
+            "min": 0.3397,
+            "max": 6.8976,
+            "band_counts": {
+              "adaptive-governance": 114,
+              "full-governance": 20,
+              "minimal-governance": 1
+            },
+            "band_proportions": {
+              "full-governance": {
+                "estimate": 0.148148,
+                "ci_low": 0.097996,
+                "ci_high": 0.21777,
+                "level": 0.95
+              },
+              "adaptive-governance": {
+                "estimate": 0.844444,
+                "ci_low": 0.77388,
+                "ci_high": 0.895949,
+                "level": 0.95
+              },
+              "minimal-governance": {
+                "estimate": 0.007407,
+                "ci_low": 0.001309,
+                "ci_high": 0.040764,
+                "level": 0.95
+              }
+            }
+          },
+          "G-only": {
+            "n": 135,
+            "mean": -0.8045,
+            "median": -0.8158,
+            "sd": 0.1606,
+            "iqr": [
+              -0.9367,
+              -0.6496
+            ],
+            "min": -1.1163,
+            "max": -0.5083,
+            "band_counts": {
+              "full-governance": 135
+            },
+            "band_proportions": {
+              "full-governance": {
+                "estimate": 1.0,
+                "ci_low": 0.972332,
+                "ci_high": 1.0,
+                "level": 0.95
+              },
+              "adaptive-governance": {
+                "estimate": 0.0,
+                "ci_low": 0.0,
+                "ci_high": 0.027668,
+                "level": 0.95
+              },
+              "minimal-governance": {
+                "estimate": 0.0,
+                "ci_low": 0.0,
+                "ci_high": 0.027668,
+                "level": 0.95
+              }
+            }
+          },
+          "Full": {
+            "n": 135,
+            "mean": 0.8682,
+            "median": 0.8172,
+            "sd": 0.4254,
+            "iqr": [
+              0.6538,
+              0.9814
+            ],
+            "min": 0.4769,
+            "max": 5.1362,
+            "band_counts": {
+              "adaptive-governance": 131,
+              "minimal-governance": 2,
+              "full-governance": 2
+            },
+            "band_proportions": {
+              "full-governance": {
+                "estimate": 0.014815,
+                "ci_low": 0.004072,
+                "ci_high": 0.052406,
+                "level": 0.95
+              },
+              "adaptive-governance": {
+                "estimate": 0.97037,
+                "ci_low": 0.926294,
+                "ci_high": 0.988419,
+                "level": 0.95
+              },
+              "minimal-governance": {
+                "estimate": 0.014815,
+                "ci_low": 0.004072,
+                "ci_high": 0.052406,
+                "level": 0.95
+              }
+            }
+          }
+        },
+        "by_tier": {
+          "high": {
+            "Baseline": -1.0128,
+            "V-only": 0.9257,
+            "G-only": -0.9634,
+            "Full": 1.0108
+          },
+          "low": {
+            "Baseline": -0.893,
+            "V-only": 0.7504,
+            "G-only": -0.8359,
+            "Full": 0.8172
+          },
+          "medium": {
+            "Baseline": -0.6629,
+            "V-only": 0.5073,
+            "G-only": -0.6198,
+            "Full": 0.6241
+          }
+        },
+        "alpha_sensitivity": {
+          "alpha=0": {
+            "Baseline": {
+              "median_st": -1.0217,
+              "band": "full-governance"
+            },
+            "Full": {
+              "median_st": 1.0892,
+              "band": "adaptive-governance"
+            },
+            "G-only": {
+              "median_st": -0.9424,
+              "band": "full-governance"
+            },
+            "V-only": {
+              "median_st": 0.9174,
+              "band": "adaptive-governance"
+            }
+          },
+          "alpha=0.25": {
+            "Baseline": {
+              "median_st": -0.9591,
+              "band": "full-governance"
+            },
+            "Full": {
+              "median_st": 0.9552,
+              "band": "adaptive-governance"
+            },
+            "G-only": {
+              "median_st": -0.8694,
+              "band": "full-governance"
+            },
+            "V-only": {
+              "median_st": 0.815,
+              "band": "adaptive-governance"
+            }
+          },
+          "alpha=0.5": {
+            "Baseline": {
+              "median_st": -0.8908,
+              "band": "full-governance"
+            },
+            "Full": {
+              "median_st": 0.8172,
+              "band": "adaptive-governance"
+            },
+            "G-only": {
+              "median_st": -0.8158,
+              "band": "full-governance"
+            },
+            "V-only": {
+              "median_st": 0.7413,
+              "band": "adaptive-governance"
+            }
+          },
+          "alpha=0.75": {
+            "Baseline": {
+              "median_st": -0.837,
+              "band": "full-governance"
+            },
+            "Full": {
+              "median_st": 0.689,
+              "band": "adaptive-governance"
+            },
+            "G-only": {
+              "median_st": -0.7871,
+              "band": "full-governance"
+            },
+            "V-only": {
+              "median_st": 0.6557,
+              "band": "adaptive-governance"
+            }
+          },
+          "alpha=1": {
+            "Baseline": {
+              "median_st": -0.7884,
+              "band": "full-governance"
+            },
+            "Full": {
+              "median_st": 0.5414,
+              "band": "adaptive-governance"
+            },
+            "G-only": {
+              "median_st": -0.7504,
+              "band": "full-governance"
+            },
+            "V-only": {
+              "median_st": 0.5893,
+              "band": "adaptive-governance"
+            }
+          }
+        }
+      }
+    }
+  }
+}

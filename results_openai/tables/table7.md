@@ -1,0 +1,9 @@
+**Table 7.** Robustness of the H4 band assignment to the Security-Tax weighting. A recommendation that survives the full sweep does not depend on the pre-registered choice of α.
+
+| α (latency weight) | Baseline median ST → band | V-only median ST → band | G-only median ST → band | Full median ST → band |
+|:--|--:|--:|--:|--:|
+| 0 | -1.022 → full governance | +0.917 → adaptive governance | -0.942 → full governance | +1.089 → adaptive governance |
+| 0.25 | -0.959 → full governance | +0.815 → adaptive governance | -0.869 → full governance | +0.955 → adaptive governance |
+| 0.5 | -0.891 → full governance | +0.741 → adaptive governance | -0.816 → full governance | +0.817 → adaptive governance |
+| 0.75 | -0.837 → full governance | +0.656 → adaptive governance | -0.787 → full governance | +0.689 → adaptive governance |
+| 1 | -0.788 → full governance | +0.589 → adaptive governance | -0.750 → full governance | +0.541 → adaptive governance |

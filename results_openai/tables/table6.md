@@ -1,0 +1,8 @@
+**Table 6.** Security-Tax distribution and policy-band assignment (α = 0.5, β = 0.5; bands at 0.5 and 1.5).
+
+| Cell | N | Mean ST | Median ST | SD | IQR | Range | Modal band | % in modal band |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|
+| Baseline | 135 | -0.8547 | -0.8908 | 0.1582 | [-0.998, -0.696] | [-1.191, -0.570] | full governance | 100.0% |
+| V-only | 135 | +0.7909 | +0.7413 | 0.5736 | [+0.541, +0.897] | [+0.340, +6.898] | adaptive governance | 84.4% |
+| G-only | 135 | -0.8045 | -0.8158 | 0.1606 | [-0.937, -0.650] | [-1.116, -0.508] | full governance | 100.0% |
+| Full | 135 | +0.8682 | +0.8172 | 0.4254 | [+0.654, +0.981] | [+0.477, +5.136] | adaptive governance | 97.0% |

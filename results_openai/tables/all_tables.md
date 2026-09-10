@@ -1,0 +1,107 @@
+**Table 1.** Ground-Truth Knowledge Graph and scenario corpus. Every scenario carries a known gold hypothesis and a known set of adversarially injected claims; the corpus is generated deterministically from the campaign seed.
+
+| Complexity tier | Scenarios | Claims | Injected claims | Injection rate |
+|:--|--:|--:|--:|--:|
+| Low | 45 | 225 | 45 | 0.200 |
+| Medium | 45 | 360 | 90 | 0.250 |
+| High | 45 | 495 | 135 | 0.273 |
+| **Total** | **135** | **1,080** | **270** | **0.250** |
+
+*Pre-registered Section 3.2.2 tolerance conformance — flesch kincaid: 0%, temporal span: 100%, ambiguity index: 100%.*
+
+
+**Table 2.** Per-cell performance across the 2×2 factorial ablation. Each cell contains one observation per scenario, so the four columns are matched within scenario.
+
+| Cell | V | G | N | Accuracy | Rubric | Brier | Det. P | Det. R | Det. F1 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| Baseline | 0 | 0 | 135 | 0.1926 | 0.2638 | 0.2500 | 0.0000 | 0.0000 | 0.0000 |
+| V-only | 1 | 0 | 135 | 0.7704 | 0.7377 | 0.1849 | 0.9848 | 0.7222 | 0.8333 |
+| G-only | 0 | 1 | 135 | 0.3333 | 0.3271 | 0.2500 | 0.0000 | 0.0000 | 0.0000 |
+| Full | 1 | 1 | 135 | 0.7704 | 0.7377 | 0.1849 | 0.9848 | 0.7222 | 0.8333 |
+
+*Detection metrics are claim-level over the whole corpus; accuracy and Brier are observation-level. Cells without a Validator emit no detections by construction and a fixed 0.5 confidence.*
+
+
+**Table 3.** Cost per observation. Modelled latency combines the inference cost model with the deployment governance cost model; measured governance latency is real elapsed wall-clock time through the mediation path.
+
+| Cell | Latency (ms) | Δ vs baseline | Tokens | Δ vs baseline | Measured governance (ms) |
+|:--|--:|--:|--:|--:|--:|
+| Baseline | 3,404.9 | — | 1,372.2 | — | 0.0000 |
+| V-only | 17,155.3 | +13,750.4  (+403.8%) | 2,971.5 | +1,599.3  (+116.5%) | 0.0000 |
+| G-only | 3,560.6 | +155.7  (+4.6%) | 1,439.2 | +66.9  (+4.9%) | 0.7072 |
+| Full | 15,627.7 | +12,222.8  (+359.0%) | 3,118.4 | +1,746.1  (+127.2%) | 1.0411 |
+
+
+**Table 4.** Confirmatory tests of H1–H3 with Holm–Bonferroni adjustment across the six-test family. All tests are paired within scenario.
+
+| Hypothesis / contrast | Test | n | Statistic | p | p (Holm) | Effect size | Estimate [95% CI] |
+|:--|:--|--:|--:|--:|--:|--:|:--|
+| H1 \| G=0: Baseline -> V-only | McNemar (exact) | 135 | 79.0 | < .0001 | < .0001 | odds ratio (discordant) = 53.000 | — |
+| H1 \| G=1: G-only -> Full | McNemar (exact) | 135 | 60.0 | < .0001 | < .0001 | odds ratio (discordant) = 40.333 | — |
+| H2 \| V=0: latency, Baseline -> G-only | Wilcoxon signed-rank | 135 | 3,700.0 | .0506 | .1519 | rank-biserial r = 0.194 | +103.876 [-0.362, +217.880] |
+| H2 \| V=1: latency, V-only -> Full | Wilcoxon signed-rank | 135 | 3,992.0 | .1891 | .3781 | rank-biserial r = 0.130 | +215.357 [-127.120, +505.132] |
+| H2: token consumption, ungoverned -> governed | Wilcoxon signed-rank | 135 | 45.5 | < .0001 | < .0001 | rank-biserial r = 0.990 | +106.250 [+97.000, +116.500] |
+| H3: V x G interaction on latency (ms) | Wilcoxon signed-rank | 135 | 4,402.0 | .6797 | .6797 | rank-biserial r = 0.041 | +79.944 [-312.409, +423.887] |
+
+*Estimate is the Hodges–Lehmann shift with the exact distribution-free signed-rank interval read off the Walsh averages; for McNemar the effect size is the discordant-pair odds ratio (Haldane–Anscombe corrected). A degenerate interval indicates a differential that is constant across scenarios by construction — see the note on the deployment cost model.*
+
+
+**Table 5.** Factorial effect estimates with 95% bootstrap intervals, resampled over scenarios.
+
+| Hypothesis | Quantity | Estimate | 95% CI | Excludes 0 |
+|:--|--:|--:|--:|--:|
+| H1 | validation main effect accuracy | +0.5074 | [+0.4259, +0.5852] | yes |
+| H2 | governance main effect latency ms | -685.9511 | [-3,710.6760, +1,178.4469] | no |
+| H2 | governance main effect tokens | +106.8852 | [+97.5552, +116.2704] | yes |
+| H2 | governance relative latency | +0.0651 | [+0.0267, +0.1059] | yes |
+| H2 | governance relative tokens | +0.0507 | [+0.0404, +0.0610] | yes |
+| H2 | measured governance ms full cell | +1.0411 | [+0.9430, +1.1547] | yes |
+| H3 | interaction latency ms | -1,683.3159 | [-7,667.4691, +1,954.2945] | no |
+| H3 | interaction tokens | +79.9185 | [+62.3100, +98.1261] | yes |
+| H3 | interaction correct | -0.1407 | [-0.2000, -0.0815] | yes |
+
+
+**Table 6.** Security-Tax distribution and policy-band assignment (α = 0.5, β = 0.5; bands at 0.5 and 1.5).
+
+| Cell | N | Mean ST | Median ST | SD | IQR | Range | Modal band | % in modal band |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|
+| Baseline | 135 | -0.8547 | -0.8908 | 0.1582 | [-0.998, -0.696] | [-1.191, -0.570] | full governance | 100.0% |
+| V-only | 135 | +0.7909 | +0.7413 | 0.5736 | [+0.541, +0.897] | [+0.340, +6.898] | adaptive governance | 84.4% |
+| G-only | 135 | -0.8045 | -0.8158 | 0.1606 | [-0.937, -0.650] | [-1.116, -0.508] | full governance | 100.0% |
+| Full | 135 | +0.8682 | +0.8172 | 0.4254 | [+0.654, +0.981] | [+0.477, +5.136] | adaptive governance | 97.0% |
+
+
+**Table 7.** Robustness of the H4 band assignment to the Security-Tax weighting. A recommendation that survives the full sweep does not depend on the pre-registered choice of α.
+
+| α (latency weight) | Baseline median ST → band | V-only median ST → band | G-only median ST → band | Full median ST → band |
+|:--|--:|--:|--:|--:|
+| 0 | -1.022 → full governance | +0.917 → adaptive governance | -0.942 → full governance | +1.089 → adaptive governance |
+| 0.25 | -0.959 → full governance | +0.815 → adaptive governance | -0.869 → full governance | +0.955 → adaptive governance |
+| 0.5 | -0.891 → full governance | +0.741 → adaptive governance | -0.816 → full governance | +0.817 → adaptive governance |
+| 0.75 | -0.837 → full governance | +0.656 → adaptive governance | -0.787 → full governance | +0.689 → adaptive governance |
+| 1 | -0.788 → full governance | +0.589 → adaptive governance | -0.750 → full governance | +0.541 → adaptive governance |
+
+
+**Table 8.** Measured wall-clock cost of governance mediation, attributed by component. Timed with time.perf_counter_ns over every mediated event in the campaign.
+
+| Component | Mean µs / event | % of mediation cost |
+|:--|--:|--:|
+| Policy evaluation fG(e) + HMAC verify | 24.134 | 25.2% |
+| Audit chain SHA-256 append | 39.082 | 40.8% |
+| Named-entity redaction | 14.285 | 14.9% |
+| Mediation-queue bookkeeping | 4.013 | 4.2% |
+| **End-to-end mediation** | **95.873** | **100.0%** |
+
+*n = 2,358 mediated events on Linux-6.8.0-139-generic-x86_64-with-glibc2.39, CPython 3.12.3; measured clock resolution 40 ns.*
+
+
+**Table 9.** Worker-to-worker need-to-know: named-entity redaction and the anchoring it interrupts.
+
+| Cell | Entity mentions visible to peers | Entity mentions redacted | Workers anchored (mean) |
+|:--|--:|--:|--:|
+| Baseline | 14.0 | 0.0 | 0.541 |
+| V-only | 14.0 | 0.0 | 0.541 |
+| G-only | 0.0 | 14.0 | 0.000 |
+| Full | 0.0 | 14.0 | 0.000 |
+
+*Anchoring is the pathway through which governance can move analytical accuracy: masking the actor's name removes the cue an unvalidating Worker herds on.*
