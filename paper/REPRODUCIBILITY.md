@@ -8,6 +8,11 @@ command, and any deviation is localisable to a named file.**
 
 ## 1. Reproducing the campaign
 
+Two campaigns are reported over the identical design. Both are reproducible;
+only one costs money.
+
+### Controlled comparison — deterministic backend (free, offline)
+
 ```sh
 git clone <repository> && cd Gmais
 python -m pip install -r requirements.txt      # core needs stdlib only
@@ -16,6 +21,35 @@ python -m gmais.cli campaign --per-tier 45 --seed 20260605 --out results/
 
 Runtime ≈ 13 s on a commodity CPU. No GPU, no API key, no network access.
 `--no-figures` drops the matplotlib requirement entirely.
+
+### Primary campaign — hosted model (billable)
+
+```sh
+cp .env.example .env        # then set OPENAI_API_KEY
+GMAIS_CONFIRM_SPEND=yes python run_openai_campaign.py
+```
+
+Issues **2,700 billable calls** (~35 min, 1,172,513 tokens, **$0.59** at
+`gpt-4o-mini` prices), writing to `results_openai/`. Two safeguards apply:
+
+* the runner **refuses to start** without `GMAIS_CONFIRM_SPEND=yes`, so the
+  completed campaign cannot be re-billed by an accidental invocation; and
+* every observation is appended to `results_openai/observations_checkpoint.csv`
+  as it completes, so a failure partway through loses neither the data nor the
+  account of what was spent. (This was not hypothetical: an early run was killed
+  by a harness timeout and 11 observations were recovered intact.)
+
+API consumption — calls, prompt/completion tokens, retries, failures, the price
+table used and the resulting cost — is recorded in `results.json` and
+`MANIFEST.json`. The reported run completed with **0 retries and 0 failures**.
+
+### Which columns differ between them
+
+The analytical columns are **identical**: accuracy 0.1926 / 0.7704 / 0.3333 /
+0.7704, detection F1 0.8333 and Brier 0.1849 in both runs. Only the cost columns
+differ, because the model's output never reaches the analytical decision
+(Limitation L10). This is worth verifying on a reproduction: if the analytical
+columns diverge between backends, something is wrong.
 
 ### What is produced
 
@@ -28,6 +62,9 @@ Runtime ≈ 13 s on a commodity CPU. No GPU, no API key, no network access.
 | `MANIFEST.json` | seed, all constants, platform, library versions, SHA-256 per artefact |
 | `tables/table1–9.{md,tex}` | publication tables (LaTeX uses `booktabs`) |
 | `figures/fig01–09.{pdf,png}` | vector + 300 dpi raster |
+| `timing.json` | repeated-measurement stability check (see §5) |
+| `observations_checkpoint.csv` | row-level checkpoint, paid runs only |
+| `api_consumption` in `results.json` | calls, tokens, retries, price table, cost |
 
 ### Verifying a reproduction
 
@@ -191,7 +228,8 @@ Individual operations run in the microsecond range, near the clock floor, so no
 single sample is trusted. Two safeguards apply. Within a campaign, the first 12
 governed observations are discarded as warm-up (cold caches and first-touch
 allocation otherwise bias the mean, and bias it unevenly across components); the
-remaining **2,430 per-event samples** are aggregated. Across campaigns, the
+remaining **2,358 per-event samples** are aggregated (2,430 events less the
+warm-up discard). Across campaigns, the
 measurement is repeated:
 
 ```sh
@@ -240,7 +278,23 @@ interaction is negligible — and H3 exists to test precisely that.
 
 ---
 
-## 7. Test suite
+## 7. Secrets and the web console
+
+`.env` is gitignored and must never be committed; `.env.example` records the
+variable names with no values. The repository was checked for this: an earlier
+commit did track `.env`, and it was removed from the index before any push, so
+no credential reached the remote.
+
+The Flask operator console (`python -m gmais.webapp`) issues billable calls on
+every run, which makes an exposed instance a way to spend someone else's credit.
+Setting **`GMAIS_DEMO_MODE=1`** pins every run to the deterministic backend and
+displays a banner saying so; verified by instrumenting the backend constructors,
+a run requesting `openai,claude` under demo mode builds 0 provider clients and
+meters 0 calls. Expose the console only with demo mode on.
+
+---
+
+## 8. Test suite
 
 ```sh
 python -m pytest tests/ -q        # 46 tests

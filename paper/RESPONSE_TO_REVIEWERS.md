@@ -66,7 +66,8 @@ them in a single figure or column:
   medians over **9 repeated campaigns** with a 12-observation warm-up discard:
   every operation GMAIS actually executes — HMAC delegation-token verification, the fG(e) policy
   decision, SHA-256 audit-chain construction, named-entity redaction, queue
-  bookkeeping. Reported as a distribution over **2,430 mediated events**.
+  bookkeeping. Reported over **2,358 mediated events** per campaign (2,430 less
+  a 12-observation warm-up discard).
 - **Modelled**: time inside the language model, and the network/durable-write
   cost a distributed policy decision point would incur. These are properties of
   a serving stack, not of GMAIS, and are labelled as cost models wherever they
@@ -90,14 +91,16 @@ check.
 
 | Quantity | Result |
 |:--|:--|
-| **Measured mediation cost** | **≈85 µs/event** (median of 9 campaigns; range 68.8–99.9, spread 1.45×) |
+| **Measured mediation cost** | **84.5 µs/event** deterministic (median of 9 campaigns, range 68.8–99.9); **95.9 µs/event** hosted |
 | **Measured component split** | audit chain 31.3 µs, policy eval 15.9 µs, redaction 11.3 µs, queue 3.2 µs (medians) — *attribution not reliably resolvable, see below* |
-| **Measured governance, Full cell** | ≈0.71 ms/observation (G-only ≈0.55 ms) |
-| **Modelled latency overhead** | +31.50 ms main effect; **+3.77%** [3.66, 3.88] relative |
-| **Token overhead** | +108.0 tokens main effect; **+6.94%** [6.80, 7.09] relative |
-| **Accuracy** | 0.193 → 0.770 with validation; 0.193 → 0.333 with governance alone |
-| **Brier score** | 0.250 → 0.185, now reported with its exact Murphy decomposition |
-| **Security Tax** | Baseline −1.012, G-only −0.928, V-only +0.883, Full +1.054 |
+| **Measured governance, Full cell** | **1.04 ms/observation** [0.94, 1.15] (hosted) |
+| **Measured end-to-end latency** (hosted) | Baseline 3,405 ms · G-only 3,561 · V-only 17,155 · Full 15,628 |
+| **Token overhead** | **+106.9** [+97.6, +116.3]; **+5.07%** [4.04, 6.10] relative (hosted) |
+| **Latency overhead** | **not detectable** under real inference — *p*<sub>Holm</sub> = .152, effect 0.116 SD |
+| **Accuracy** | 0.1926 → 0.7704 with validation; 0.1926 → 0.3333 with governance alone (identical in both campaigns) |
+| **Detection** | precision 0.985, recall 0.722, F1 0.833 |
+| **Brier score** | 0.250 → 0.1849, now reported with its exact Murphy decomposition |
+| **Security Tax** (hosted) | Baseline −0.891, G-only −0.816, V-only +0.741, Full +0.817 |
 
 The Brier score is no longer reported as a bare number. Table 2 and Figure 6 give
 the **Murphy decomposition** (reliability − resolution + uncertainty, residual
@@ -278,22 +281,29 @@ than white text over hatching. `results/figures/fig01_architecture.pdf`.
 ## Summary of artefacts
 
 ```
-results/
-  observations.csv     540 × 31   the observation matrix
-  security_tax.csv     540 × 9    per-observation ST, z-components, band
-  results.json                    per-cell metrics + complete H1–H4 inference
-  REPORT.txt                      human-readable campaign report
-  MANIFEST.json                   seed, constants, platform, SHA-256 per artefact
+results_openai/          PRIMARY — hosted gpt-4o-mini, 2,700 calls, $0.59
+results/                 CONTROLLED COMPARISON — deterministic, offline
+  observations.csv       540 × 31   the observation matrix
+  security_tax.csv       540 × 9    per-observation ST, z-components, band
+  results.json                      per-cell metrics, H1–H4 inference, api_consumption
+  REPORT.txt                        human-readable campaign report
+  MANIFEST.json                     seed, constants, platform, SHA-256 per artefact
+  timing.json                       repeated-measurement stability check
   tables/     table1–9 .md / .tex
   figures/    fig01–09 .pdf / .png
 paper/
-  RESULTS.md            rewritten Chapter Four
-  REPRODUCIBILITY.md    ground truth, corpus construction, reproduction protocol
-  LIMITATIONS.md        expanded limitations and practical applicability
+  RESULTS.md             rewritten Chapter Four (both campaigns)
+  REPRODUCIBILITY.md     ground truth, corpus construction, reproduction protocol
+  LIMITATIONS.md         L1–L10 and practical applicability
+  RESPONSE_TO_REVIEWERS.md
 ```
 
-Reproduce in full with:
+Reproduce with:
 
 ```sh
+# controlled comparison (free, offline, ~13 s)
 python -m gmais.cli campaign --per-tier 45 --seed 20260605 --out results/
+
+# primary campaign (billable: ~2,700 calls, ~$0.59)
+GMAIS_CONFIRM_SPEND=yes python run_openai_campaign.py
 ```

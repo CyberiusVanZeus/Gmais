@@ -28,25 +28,29 @@ otherwise.
 
 ---
 
-All results in this chapter come from a single campaign executed with
+Each campaign produces **540 observations**: 135 scenarios (45 per complexity
+tier) taken through each of the four factorial cells.
 
 ```sh
+# primary — hosted gpt-4o-mini, 2,700 billable calls, $0.59
+GMAIS_CONFIRM_SPEND=yes python run_openai_campaign.py        # -> results_openai/
+
+# controlled comparison — deterministic, offline, ~13 s
 python -m gmais.cli campaign --per-tier 45 --seed 20260605 --out results/
 ```
 
-producing **540 observations**: 135 scenarios (45 per complexity tier) taken
-through each of the four factorial cells. Numbers are quoted from
-`results/results.json`; tables and figures are generated from
-`results/observations.csv` and reproduced in `results/tables/` and
-`results/figures/`.
+Numbers are quoted from `results_openai/results.json` (primary) and
+`results/results.json` (comparison); tables and figures are generated from the
+corresponding `observations.csv`.
 
 Throughout, **measured** and **modelled** quantities are kept apart. Measured
 figures are real elapsed wall-clock time through code GMAIS executes, taken with
-`time.perf_counter_ns` (measured clock resolution 39 ns). Modelled figures come
-from an explicit cost model — for language-model inference, and for the
-network and durable-write cost a distributed policy decision point would incur.
-Both are legitimate, but only the first is a measurement, and no table or figure
-mixes them.
+`time.perf_counter_ns` (measured clock resolution 39 ns). In the primary
+campaign end-to-end latency is also measured, being the observed round trip to
+the model. Under the deterministic backend that same figure is **modelled** by
+an explicit cost model, as is the network and durable-write cost a distributed
+policy decision point would incur. Only measurements are called measurements,
+and no table or figure mixes the two.
 
 ---
 
@@ -171,13 +175,16 @@ true; they measure different things.
 
 ### Measured cost
 
-Governance mediation was timed over **2,430 mediated events per campaign**,
-repeated across **9 campaigns** with a 12-observation warm-up discard
-(`python -m gmais.cli timing --per-tier 45 --repeats 9`).
+Governance mediation was timed over **2,358 mediated events per campaign**
+(2,430 events less the 12-observation warm-up discard), repeated across
+**9 campaigns** (`python -m gmais.cli timing --per-tier 45 --repeats 9`).
 
-End-to-end mediation costs **≈85 µs per event** (median; range 68.8–99.9 across
-the nine campaigns, spread 1.45×). Per observation, measured governance costs
-**≈0.71 ms** in the Full cell and ≈0.55 ms in G-only.
+End-to-end mediation costs **84.5 µs per event** in the deterministic campaign
+(median; range 68.8–99.9, spread 1.45×) and **95.9 µs** in the hosted campaign.
+The two agree to well within the run-to-run spread, which is expected: this is
+GMAIS's own mediation code and it does not depend on which backend served the
+completions. Per observation, measured governance costs **1.04 ms**
+[0.94, 1.15] in the hosted Full cell.
 
 | Component | Median µs/event | Range | Spread |
 |:--|--:|:--|--:|
@@ -186,6 +193,9 @@ the nine campaigns, spread 1.45×). Per observation, measured governance costs
 | Named-entity redaction | 11.3 | 9.5 – 32.5 | 3.4× |
 | Mediation-queue bookkeeping | 3.2 | 2.9 – 10.3 | 3.6× |
 | **End-to-end** | **84.5** | **68.8 – 99.9** | **1.45×** |
+
+The hosted campaign's single-run split (policy 24.1, audit 39.1, redaction 14.3,
+queue 4.0 µs) falls inside these ranges throughout.
 
 **The component attribution is not reliably resolvable and should not be relied
 on.** The total is stable to within 1.45×, but individual components swing by up
@@ -202,7 +212,27 @@ What the measurement does support is the aggregate: **governance mediation costs
 on the order of 10⁻⁴ s per inter-agent event**, which is the quantity the
 deployment argument in §5 rests on.
 
-### Modelled cost and relative overhead
+### Cost, primary (hosted) campaign
+
+| Quantity | Estimate | 95% CI |
+|:--|--:|:--|
+| Governance main effect, tokens | **+106.9** | [+97.6, +116.3] |
+| **Relative token overhead** | **+5.07%** | [+4.04, +6.10] |
+| Governance main effect, latency | −685.95 ms | [−3,710.68, +1,178.45] |
+| Relative latency overhead | +6.51% | [+2.67, +10.59] |
+
+Mean cost per observation: latency 3,405 ms (Baseline), 3,561 (G-only), 17,155
+(V-only), 15,628 (Full); tokens 1,372 / 1,439 / 2,972 / 3,118.
+
+The token effect is precise and the latency effect is not — the latency main
+effect's interval spans nearly 5 seconds and its point estimate is *negative*,
+which is noise, not a speed-up from governance. Note also that Full is **faster**
+than V-only in mean latency (15,628 vs 17,155 ms) despite doing strictly more
+work: the V-only cell's SD of 29,653 ms is large enough to invert a cell mean.
+That single observation is the clearest statement of why H2's latency channel
+cannot be adjudicated on this evidence.
+
+### Cost, controlled (deterministic) comparison
 
 | Quantity | Estimate | 95% CI |
 |:--|--:|:--|
@@ -211,9 +241,9 @@ deployment argument in §5 rests on.
 | **Relative latency overhead** | **+3.77%** | [+3.66, +3.88] |
 | **Relative token overhead** | **+6.94%** | [+6.80, +7.09] |
 
-All three confirmatory tests reject at *p*<sub>Holm</sub> < .0001 with
-rank-biserial *r* = 1.00: governance raised cost in **every one of the 135
-scenarios**, without exception.
+With inference variance removed, all three confirmatory tests reject at
+*p*<sub>Holm</sub> < .0001 with rank-biserial *r* = 1.00: governance raised cost
+in **every one of the 135 scenarios**, without exception.
 
 The degenerate intervals on the absolute effects require comment, since a
 reviewer is right to be suspicious of a CI of zero width. They are a property of
@@ -246,18 +276,20 @@ opposite directions on cost and on benefit**.
 The interaction contrast is formed within each scenario as
 (Full − V-only) − (G-only − Baseline), giving 135 values tested against zero:
 
-| Outcome | Interaction | 95% CI | Sign |
-|:--|--:|:--|:--|
-| Latency (ms) | **+21.00** | [+21.00, +21.00] | super-additive |
-| Tokens | **+72.00** | [+72.00, +72.00] | super-additive |
-| Accuracy | **−0.141** | [−0.200, −0.082] | sub-additive |
+| Outcome | Hosted (primary) | Deterministic | Sign |
+|:--|:--|:--|:--|
+| Tokens | **+79.9 [+62.3, +98.1]**, *p* = 7.9×10⁻¹³ | +72.0 [+72.0, +72.0] | **super-additive** |
+| Accuracy | **−0.141 [−0.200, −0.082]** | −0.141 [−0.200, −0.082] | **sub-additive** |
+| Latency (ms) | −1,683 [−7,667, +1,954], *p* = .68 | +21.0 [+21.0, +21.0] | not resolvable / super-additive |
 
-*(latency: p<sub>Holm</sub> < .0001, confirmatory; tokens and accuracy exploratory)*
+*(latency is the confirmatory test; tokens and accuracy are exploratory)*
 
-**On cost, the mechanisms compound.** Adding governance to a validated system
-costs +42.0 ms, twice the +21.0 ms it costs an unvalidated one, because the
-Governance Layer must mediate the Validator's critique traffic in addition to
-worker traffic — 12 events rather than 6.
+**On cost, the mechanisms compound.** The token interaction is +79.9: adding
+governance to a validated system costs more than adding it to an unvalidated
+one, because the Governance Layer must mediate the Validator's critique traffic
+in addition to worker traffic — 12 events rather than 6. The deterministic
+campaign shows the same compounding on latency (+42.0 ms versus +21.0 ms); under
+real inference that channel is lost in variance.
 
 **On accuracy, they are redundant.** Governance improves accuracy by +0.140 when
 no Validator is present (0.193 → 0.333) and by **exactly zero** when one is

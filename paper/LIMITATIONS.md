@@ -63,11 +63,13 @@ latency effect detectable again.
 
 **Evidence.** The campaign runs on a deterministic backend. Governance mediation,
 Admiralty grading, ACH evaluation, audit chaining and redaction are all **really
-executed and really measured** (≈85 µs/event, median of 9 campaigns, 39 ns clock
-resolution). Time inside the language model is not: it comes from an explicit
+executed and really measured** (84.5 µs/event, median of 9 campaigns, 39 ns
+clock resolution). Time inside the language model is not: it comes from an explicit
 cost model.
 
-**Consequence.** The **relative** overheads (+3.77% latency, +6.94% tokens) are
+**Consequence** *(as written before the hosted campaign; superseded by L2 above)*.
+The **relative** overheads under the deterministic backend (+3.77% latency,
++6.94% tokens) are
 computed against a modelled inference baseline. Under a real serving stack the
 absolute latencies would be far larger and the *relative* governance overhead
 correspondingly **smaller**, since the fixed mediation cost would be divided by a
@@ -140,13 +142,21 @@ though the *values* do not travel.
 
 ---
 
-## L6 — Single-seed campaign
+## L6 — Single-seed campaigns, single hosted provider
 
-All 540 observations come from one seed (20260605). The seed fixes both the
+All 540 observations in each campaign come from one seed (20260605), and the
+primary campaign used one hosted model (`gpt-4o-mini`) in one session. The seed fixes both the
 corpus and the noise draws, so reported intervals capture within-campaign
 scenario variability but **not** between-corpus variability. The correct
 robustness check is a multi-seed campaign with seed as a random effect. The
-harness supports this (`--seed`); it was not run here.
+harness supports this (`--seed`); it was not run here, and re-running the hosted
+campaign across seeds would multiply the $0.59 cost by the number of seeds.
+
+The single-provider constraint matters specifically for L2: the latency variance
+that made H2's latency channel undetectable is a property of that serving stack
+on that day. A local quantised model — the thesis's actual deployment target —
+would have a different variance profile, and the effect might well be
+recoverable there.
 
 ---
 
@@ -182,25 +192,6 @@ implemented.
 
 ---
 
-## L10 — The language model does not affect the analytical result
-
-The Worker tier and Validator call the model, but the hypothesis decision is
-computed from the scenario's evidence structure and the Admiralty/ACH logic in
-Python; the completion text is consumed only for latency and token telemetry.
-Accuracy, detection, Brier and rubric scores are therefore **bit-identical**
-across the deterministic and hosted campaigns (0.1926 / 0.7704 / 0.3333 /
-0.7704 in both).
-
-This is a genuine architectural limitation, not a measurement artefact: GMAIS as
-implemented is an *instrumented tradecraft pipeline* whose analytical quality is
-independent of the model driving it. The H1 result should be read as evidence
-that **structured validation logic** raises accuracy, not that a language model
-does. Making the agents' reasoning genuinely model-dependent — having the ACH
-consistency assessment come from the model rather than the corpus structure — is
-the most substantial piece of future work the evaluation identifies.
-
----
-
 ## L9 — Component-level timing attribution is below the measurement's resolving power
 
 **Evidence.** Repeating the identical campaign nine times on one idle host: the
@@ -228,20 +219,44 @@ This limitation is methodological rather than architectural: it bounds what the
 
 ---
 
+## L10 — The language model does not affect the analytical result
+
+The Worker tier and Validator call the model, but the hypothesis decision is
+computed from the scenario's evidence structure and the Admiralty/ACH logic in
+Python; the completion text is consumed only for latency and token telemetry.
+Accuracy, detection, Brier and rubric scores are therefore **bit-identical**
+across the deterministic and hosted campaigns (0.1926 / 0.7704 / 0.3333 /
+0.7704 in both).
+
+This is a genuine architectural limitation, not a measurement artefact: GMAIS as
+implemented is an *instrumented tradecraft pipeline* whose analytical quality is
+independent of the model driving it. The H1 result should be read as evidence
+that **structured validation logic** raises accuracy, not that a language model
+does. Making the agents' reasoning genuinely model-dependent — having the ACH
+consistency assessment come from the model rather than the corpus structure — is
+the most substantial piece of future work the evaluation identifies.
+
+---
+
 # Practical applicability
 
 What the evidence supports, and what it does not.
 
-### Governance is cheap enough to deploy by default
+### Governance's latency cost is not merely affordable — it is unobservable
 
-Mediation costs **≈85 µs per inter-agent event** (median of 9 campaigns) and
-**+3.77%** end-to-end latency, with audit-chain integrity holding across all 270 governed
-observations. For any analytical workload with a human in the loop, a ~4%
-latency increase for authenticated delegation, need-to-know enforcement and a
-tamper-evident audit trail is not a meaningful trade. Both ungoverned cells sit
-at 100% in the full-governance band. **The binding constraint is tokens (+6.94%),
-not time** — governance costs money more than it costs latency, which inverts
-the framing the manuscript began with.
+Mediation costs **84.5 µs per inter-agent event** in the deterministic campaign
+and **95.9 µs** in the hosted one, with audit-chain integrity holding across all
+270 governed observations in both. Under real inference that cost cannot be
+detected at all: the governance latency effect is ~104 ms against a baseline
+latency SD of 900 ms and a V-only SD of 29,653 ms (*p*<sub>Holm</sub> = .152).
+
+For any analytical workload with a human in the loop, authenticated delegation,
+need-to-know enforcement and a tamper-evident audit trail are effectively free
+in time. Both ungoverned cells sit at 100% in the full-governance band.
+
+**The binding constraint is tokens: +5.07% [+4.04, +6.10] under real inference.**
+Governance costs money, not time — which inverts the framing the manuscript
+began with, and is the single most useful correction the evaluation produced.
 
 ### Do not optimise governance components on this evidence
 
@@ -270,9 +285,9 @@ genuinely useful result for resource-constrained deployments.
 ### Deploying both costs more than the sum of the parts
 
 Governance mediates validator traffic too, so combining the mechanisms is
-super-additive on cost (+21.0 ms beyond additivity) while sub-additive on
-benefit. Budget for the combination directly; do not add the separately measured
-costs.
+super-additive on cost (**+79.9 tokens** beyond additivity under real inference)
+while sub-additive on benefit (**−0.141** accuracy). Budget for the combination
+directly; do not add the separately measured costs.
 
 ### What must be established before operational use
 
