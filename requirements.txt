@@ -4,15 +4,21 @@
 
 # --- Web interface ----------------------------------------------------------
 flask>=3.0
+# Production WSGI server for hosting on a cloud server (no Docker required):
+#   gunicorn -w 2 -b 0.0.0.0:5000 wsgi:app
+gunicorn>=21.0
 
 # --- Optional: non-parametric triangulation (Friedman / Wilcoxon) -----------
 # Enables gmais.analysis.nonparametric_triangulation; degrades gracefully if absent.
 numpy>=1.24
 scipy>=1.10
 
-# --- Optional: real local/remote inference backend --------------------------
-# Required only for `--backend openai` (llama.cpp / LM Studio / Ollama / OpenAI).
+# --- LLM providers (install the ones you use) -------------------------------
+# OpenAI hosted + any local OpenAI-compatible server (llama.cpp/LM Studio/Ollama):
 openai>=1.30
+# Anthropic Claude (light Haiku model by default):
+anthropic>=0.40
+# Web search corroboration uses only the Python standard library (urllib).
 
 # --- Optional: legacy interface language handling ---------------------------
 python-dotenv>=1.0

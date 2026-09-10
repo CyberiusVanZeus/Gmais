@@ -1,0 +1,13 @@
+**Table 5.** Factorial effect estimates with 95% bootstrap intervals, resampled over scenarios.
+
+| Hypothesis | Quantity | Estimate | 95% CI | Excludes 0 |
+|:--|--:|--:|--:|--:|
+| H1 | validation main effect accuracy | +0.5074 | [+0.4259, +0.5852] | yes |
+| H2 | governance main effect latency ms | +31.5000 | [+31.5000, +31.5000] | yes |
+| H2 | governance main effect tokens | +108.0000 | [+108.0000, +108.0000] | yes |
+| H2 | governance relative latency | +0.0377 | [+0.0366, +0.0388] | yes |
+| H2 | governance relative tokens | +0.0694 | [+0.0680, +0.0709] | yes |
+| H2 | measured governance ms full cell | +0.8138 | [+0.6301, +1.1411] | yes |
+| H3 | interaction latency ms | +21.0000 | [+21.0000, +21.0000] | yes |
+| H3 | interaction tokens | +72.0000 | [+72.0000, +72.0000] | yes |
+| H3 | interaction correct | -0.1407 | [-0.2000, -0.0815] | yes |

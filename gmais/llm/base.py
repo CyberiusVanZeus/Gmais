@@ -36,6 +36,9 @@ class LLMResponse:
     latency_ms: float
     model: str
     role: str = "worker"
+    # Which provider actually served this call (claude / openai / local / mock).
+    # Set by multi-provider routing so the activity feed can show the real path.
+    provider: str = ""
 
     @property
     def total_tokens(self) -> int:

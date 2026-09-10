@@ -1,0 +1,136 @@
+======================================================================
+GMAIS 2x2 FACTORIAL ABLATION REPORT
+======================================================================
+Backend: mock    Seed: 20260605    Observations: 540 (target 540)
+
+PER-CELL PERFORMANCE
+----------------------------------------------------------------------
+Cell          N     Acc   Brier   Det-F1    Lat(ms)   Tokens
+Baseline    135   0.193   0.250    0.000      571.9   1051.7
+V-only      135   0.770   0.185    0.833     2636.4   1947.3
+G-only      135   0.333   0.250    0.000      592.9   1123.7
+Full        135   0.770   0.185    0.833     2678.4   2091.3
+
+FACTORIAL EFFECTS (descriptive point estimates)
+----------------------------------------------------------------------
+  H1  Validation -> accuracy        : +0.5074
+  H2  Governance -> latency (ms)     : +31.50
+  H2  Governance -> tokens           : +108.00
+  H3  V x G interaction (latency ms) : +21.00
+  H3  V x G interaction (tokens)     : +72.00
+
+SECURITY TAX DISTRIBUTION  (ST = a*z(dL) + b*z(dC))
+----------------------------------------------------------------------
+Cell          N     mean   median      min      max
+Baseline    135   -1.014   -1.012   -1.358   -0.715
+V-only      135    0.887    0.883    0.362    1.383
+G-only      135   -0.929   -0.928   -1.272   -0.629
+Full        135    1.056    1.054    0.532    1.554
+
+POLICY-THRESHOLD RECOMMENDATION (H4)
+----------------------------------------------------------------------
+  V-only    : Adaptive governance (0.5 <= ST <= 1.5)
+  G-only    : Full governance deployment (ST < 0.5)
+  Full      : Adaptive governance (0.5 <= ST <= 1.5)
+
+NON-PARAMETRIC TRIANGULATION
+----------------------------------------------------------------------
+  Friedman chi2=405.0 p=0.0 (n=135)
+    Wilcoxon V-only vs Full        : p_adj=0.0
+    Wilcoxon Baseline vs G-only    : p_adj=0.0
+    Wilcoxon Baseline vs V-only    : p_adj=0.0
+    Wilcoxon Baseline vs Full      : p_adj=0.0
+    Wilcoxon V-only vs G-only      : p_adj=0.0
+    Wilcoxon G-only vs Full        : p_adj=0.0
+
+AUDIT-CHAIN INTEGRITY: INTACT across all governed observations
+======================================================================
+
+==============================================================================
+CONFIRMATORY INFERENCE:  H1-H4
+==============================================================================
+Observations: 540   Scenarios: 135   Confirmatory family: 6 tests   Correction: Holm-Bonferroni
+
+H1  [SUPPORTED]
+------------------------------------------------------------------------------
+  Embedding structured validation (Admiralty grading + ACH under
+  bounded-rationality control) raises analytical accuracy relative to an
+  unvalidated multi-agent baseline.
+
+  * H1 | G=0: Baseline -> V-only
+      McNemar (exact): statistic=79.00  p=< .0001  p_holm=< .0001
+      odds ratio (discordant) = 53.0000
+  * H1 | G=1: G-only -> Full
+      McNemar (exact): statistic=60.00  p=< .0001  p_holm=< .0001
+      odds ratio (discordant) = 40.3333
+    H1 (exploratory): rubric composite, Baseline -> V-only
+      Wilcoxon signed-rank: statistic=22.50  p=< .0001
+      rank-biserial r = 0.9937
+      shift = +0.4750 [+0.4500, +0.5250]
+
+      validation_main_effect_accuracy            +0.5074 [+0.4259, +0.5852]
+
+H2  [SUPPORTED]
+------------------------------------------------------------------------------
+  Governance mediation (authenticated delegation, need-to-know enforcement,
+  hash-chained audit) imposes a measurable and quantifiable latency and
+  token overhead.
+
+  * H2 | V=0: latency, Baseline -> G-only
+      Wilcoxon signed-rank: statistic=0.00  p=< .0001  p_holm=< .0001
+      rank-biserial r = 1.0000
+      shift = +21.0000 [+21.0000, +21.0000]
+  * H2 | V=1: latency, V-only -> Full
+      Wilcoxon signed-rank: statistic=0.00  p=< .0001  p_holm=< .0001
+      rank-biserial r = 1.0000
+      shift = +42.0000 [+42.0000, +42.0000]
+  * H2: token consumption, ungoverned -> governed
+      Wilcoxon signed-rank: statistic=0.00  p=< .0001  p_holm=< .0001
+      rank-biserial r = 1.0000
+      shift = +108.0000 [+108.0000, +108.0000]
+
+      governance_main_effect_latency_ms          +31.5000 [+31.5000, +31.5000]
+      governance_main_effect_tokens              +108.0000 [+108.0000, +108.0000]
+      governance_relative_latency                +0.0377 [+0.0366, +0.0388]
+      governance_relative_tokens                 +0.0694 [+0.0680, +0.0709]
+      measured_governance_ms_full_cell           +0.8138 [+0.6301, +1.1411]
+
+H3  [SUPPORTED]
+------------------------------------------------------------------------------
+  Validation and governance interact: their joint cost and joint benefit are
+  not the sum of their separate contributions.
+
+  * H3: V x G interaction on latency (ms)
+      Wilcoxon signed-rank: statistic=0.00  p=< .0001  p_holm=< .0001
+      rank-biserial r = 1.0000
+      shift = +21.0000 [+21.0000, +21.0000]
+    H3: V x G interaction on tokens
+      Wilcoxon signed-rank: statistic=0.00  p=< .0001
+      rank-biserial r = 1.0000
+      shift = +72.0000 [+72.0000, +72.0000]
+    H3: V x G interaction on accuracy
+      Wilcoxon signed-rank: statistic=0.00  p=< .0001
+      rank-biserial r = -1.0000
+      shift = +0.0000 [+0.0000, +0.0000]
+
+      interaction_latency_ms                     +21.0000 [+21.0000, +21.0000]
+      interaction_tokens                         +72.0000 [+72.0000, +72.0000]
+      interaction_correct                        -0.1407 [-0.2000, -0.0815]
+
+H4  [SUPPORTED]
+------------------------------------------------------------------------------
+  The Security Tax ST = alpha*z(dL) + beta*z(dC) partitions configurations
+  into interpretable governance-policy bands.
+
+    H4 (exploratory): Security Tax, G-only -> Full
+      Wilcoxon signed-rank: statistic=0.00  p=< .0001
+      rank-biserial r = 1.0000
+      shift = +1.9799 [+1.9467, +2.0137]
+
+      median_st_Baseline                         -1.0118 [-1.0347, -0.9739]
+      median_st_V-only                           +0.8831 [+0.8213, +0.9390]
+      median_st_G-only                           -0.9276 [-0.9500, -0.8887]
+      median_st_Full                             +1.0545 [+0.9847, +1.1093]
+
+  * = member of the pre-registered confirmatory family (Holm-adjusted); unmarked tests are exploratory.
+==============================================================================

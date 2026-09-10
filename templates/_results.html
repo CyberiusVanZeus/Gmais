@@ -1,0 +1,187 @@
+{# Results fragment streamed to the browser over SSE on run completion. #}
+<style>
+  .r-panel { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:1.25rem; margin-bottom:1.25rem; }
+  .r-panel table { width:100%; border-collapse:collapse; font-size:.83rem; }
+  .r-panel th, .r-panel td { text-align:left; padding:.5rem .55rem; border-bottom:1px solid #30363d; vertical-align:top; }
+  .r-panel th { color:#8b949e; font-weight:600; }
+  .yes { color:#3fb950; } .no { color:#f85149; } .mut { color:#8b949e; }
+  .gold { color:#58a6ff; }
+  .pill { display:inline-block; padding:.05rem .45rem; border-radius:999px; border:1px solid #30363d; font-size:.72rem; }
+  code { background:#21262d; padding:.05rem .35rem; border-radius:4px; }
+  tr.inj { background: rgba(248,81,73,.07); }
+  .analytics { color:#adbac7; font-size:.78rem; line-height:1.45; background:#0b0f14; border-left:3px solid #58a6ff; padding:.5rem .7rem; border-radius:0 6px 6px 0; }
+  .sec-title { font-size:.98rem; font-weight:600; margin-bottom:.8rem; }
+  .subsec { font-size:.82rem; font-weight:600; color:#8b949e; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.5rem; }
+  .cell-text { color:#8b949e; font-size:.76rem; max-width:20rem; }
+  .scenario-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+  .scenario-text { font-size:.82rem; line-height:1.6; color:#adbac7; background:#0b0f14; border:1px solid #30363d; border-radius:6px; padding:.75rem; max-height:14rem; overflow-y:auto; white-space:pre-wrap; }
+  .hyp-box { background:#0b0f14; border:1px solid #30363d; border-radius:6px; padding:.65rem .75rem; margin-bottom:.5rem; font-size:.83rem; }
+  .hyp-box.gold-hyp { border-color:#58a6ff; background:rgba(88,166,255,.05); }
+  .hyp-label { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.2rem; }
+  .hyp-label.gold-lbl { color:#58a6ff; }
+  .hyp-label.alt-lbl  { color:#8b949e; }
+  .hyp-text { color:#e6edf3; }
+  .gtkg-wrap { max-height:22rem; overflow-y:auto; }
+  .gtkg-wrap table { font-size:.78rem; }
+  .inj-badge { background:rgba(248,81,73,.15); color:#f85149; border:1px solid rgba(248,81,73,.3); border-radius:4px; padding:.05rem .3rem; font-size:.7rem; }
+  .divider { border:none; border-top:1px solid #30363d; margin:1rem 0; }
+  .results-title { font-size:.88rem; font-weight:600; margin-bottom:.6rem; color:#adbac7; }
+</style>
+
+<!-- ========== Aggregate per-cell summary ========== -->
+<div class="r-panel">
+  <div class="sec-title">
+    {% if label %}<span style="color:#58a6ff;">{{ label }}</span> &mdash; {% endif %}
+    Aggregate across {{ n_runs }} run(s)
+    &middot; tier: <code>{{ tier }}</code>
+    &middot; providers: <code>{{ providers|join(', ') }}</code>
+    &middot; web search: {{ 'on' if web_search else 'off' }}
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Cell</th><th>V</th><th>G</th><th>Accuracy</th><th>Det-F1</th>
+        <th>Latency (ms)</th><th>&Delta;L</th><th>Tokens</th><th>&Delta;C</th>
+        <th>Bias exp.</th><th>Mean ST</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in aggregate %}
+      <tr>
+        <td><strong>{{ a.cell }}</strong></td>
+        <td>{{ '1' if a.validation else '0' }}</td>
+        <td>{{ '1' if a.governance else '0' }}</td>
+        <td>{{ '%.0f%%'|format(a.correct * 100) }}</td>
+        <td>{{ '%.3f'|format(a.detection_f1) }}</td>
+        <td>{{ '%.1f'|format(a.latency_ms) }}</td>
+        <td>{{ '%+.1f'|format(a.delta_latency) if a.delta_latency else '—' }}</td>
+        <td>{{ '%.0f'|format(a.tokens) }}</td>
+        <td>{{ '%+.0f'|format(a.delta_tokens) if a.delta_tokens else '—' }}</td>
+        <td class="{{ 'no' if a.bias_exposure else 'yes' }}">{{ '%.1f'|format(a.bias_exposure) }}</td>
+        <td>{{ '%.3f'|format(a.security_tax) }}</td>
+      </tr>
+      <tr>
+        <td colspan="11"><div class="analytics">{{ a.analytics }}</div></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="mut" style="font-size:.76rem;margin-top:.6rem;">
+    H1 = validation effect on accuracy/detection &middot; H2 = governance latency/token tax &middot;
+    H3 = V&times;G interaction (super-additive cost) &middot; ST band: &lt;0.5 full governance, 0.5&ndash;1.5 adaptive, &gt;1.5 minimal.
+  </div>
+</div>
+
+<!-- ========== Scenario-by-scenario breakdown ========== -->
+{% for s in per_scenario %}
+<div class="r-panel">
+
+  <!-- ── Header ── -->
+  <div class="sec-title">
+    Scenario <code>{{ s.sid }}</code>
+    <span class="mut">&middot; {{ s.tier }} tier</span>
+    &middot; entities: {% for e in s.entities %}<code>{{ e }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+    &middot; injected claims: {% for i in s.injected %}<span class="inj-badge">{{ i }}</span> {% endfor %}
+  </div>
+
+  <!-- ── Two-column: OSINT scenario text | Competing hypotheses ── -->
+  <div class="scenario-grid">
+    <div>
+      <div class="subsec">OSINT Scenario Input</div>
+      <div class="scenario-text">{{ s.text }}</div>
+    </div>
+    <div>
+      <div class="subsec">Competing Hypotheses</div>
+      {% for hid, htext in s.hypotheses.items() %}
+        {% if hid == s.gold %}
+        <div class="hyp-box gold-hyp">
+          <div class="hyp-label gold-lbl">&#10003; Gold — {{ hid }}</div>
+          <div class="hyp-text">{{ htext }}</div>
+        </div>
+        {% else %}
+        <div class="hyp-box">
+          <div class="hyp-label alt-lbl">Alt — {{ hid }}</div>
+          <div class="hyp-text">{{ htext }}</div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ── GTKG — always expanded ── -->
+  <div class="subsec">Ground Truth Knowledge Graph &mdash; clean-room reference ({{ s.gtkg_claims|length }} claims)</div>
+  <div class="gtkg-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Claim ID</th><th>Provenance</th><th>Corr.</th><th>Admiralty</th>
+          <th>Conf.</th><th>Veracity</th><th>Flag</th><th>Supports</th><th>Claim text</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in s.gtkg_claims %}
+        <tr class="{{ 'inj' if c.is_injected else '' }}">
+          <td><code>{{ c.cid }}</code></td>
+          <td>{{ c.provenance }}</td>
+          <td>{{ c.corroboration }}</td>
+          <td><span class="pill">{{ c.admiralty }}</span></td>
+          <td>{{ '%.2f'|format(c.confidence) }}</td>
+          <td class="{{ 'yes' if c.is_true else 'no' }}">{{ 'true' if c.is_true else 'false' }}</td>
+          <td>{% if c.is_injected %}<span class="inj-badge">&#9888; injected</span>{% else %}<span class="mut">—</span>{% endif %}</td>
+          <td class="gold">{{ c.supports }}</td>
+          <td class="cell-text">{{ c.text }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ── Per-cell factorial results ── -->
+  <div class="results-title">Factorial Cell Results &mdash; predicted vs gold <span class="gold">{{ s.gold }}</span></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Cell</th><th>V</th><th>G</th><th>Predicted</th><th>Correct?</th>
+        <th>Injections detected</th><th>Conf.</th>
+        <th>Latency</th><th>&Delta;L</th><th>Tokens</th><th>&Delta;C</th>
+        <th>Corrob.</th><th>Bias exp.</th><th>Redacted</th><th>Audit</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in s.rows %}
+      <tr>
+        <td><strong>{{ r.cell }}</strong></td>
+        <td class="mut">{{ '1' if r.validation else '0' }}</td>
+        <td class="mut">{{ '1' if r.governance else '0' }}</td>
+        <td class="gold">{{ r.predicted }}</td>
+        <td class="{{ 'yes' if r.correct else 'no' }}" style="font-size:1rem;">{{ '✓' if r.correct else '✗' }}</td>
+        <td>{% if r.detected %}<code>{{ r.detected|join(', ') }}</code>{% else %}<span class="mut">none</span>{% endif %}</td>
+        <td>{{ '%.2f'|format(r.confidence) }}</td>
+        <td>{{ '%.1f'|format(r.latency_ms) }}</td>
+        <td>{{ '%+.1f'|format(r.delta_latency) if r.delta_latency else '—' }}</td>
+        <td>{{ r.tokens }}</td>
+        <td>{{ '%+d'|format(r.delta_tokens) if r.delta_tokens else '—' }}</td>
+        <td>{{ r.corroboration }}</td>
+        <td class="{{ 'no' if r.bias_exposure else 'yes' }}">{{ r.bias_exposure }}</td>
+        <td>{{ r.entities_redacted if r.entities_redacted else '—' }}</td>
+        <td>
+          {% if r.audit_intact is none %}<span class="pill">n/a</span>
+          {% elif r.audit_intact %}<span class="pill yes">intact</span>
+          {% else %}<span class="pill no">broken</span>{% endif %}
+        </td>
+      </tr>
+      {% if r.analytics %}
+      <tr>
+        <td colspan="15"><div class="analytics">{{ r.analytics }}</div></td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+{% endfor %}

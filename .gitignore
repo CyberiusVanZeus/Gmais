@@ -1,9 +1,29 @@
+# --- Secrets: never commit -------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Virtual environments --------------------------------------------------
+.venv/
+venv/
+env/
+
+# --- Python ----------------------------------------------------------------
 __pycache__/
 *.pyc
 *.pyo
-.DS_Store
 *.egg-info/
 .pytest_cache/
+
+# --- OS / editor -----------------------------------------------------------
+.DS_Store
+
+# --- Transient run artefacts (the committed results/ package is the record) -
+results_openai/observations_checkpoint.csv
+results_openai/run.log
 gmais_observations.csv
 results.csv
 *.sqlite
+*.tar.gz

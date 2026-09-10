@@ -6,12 +6,16 @@ Subcommands:
 * ``analyze``    - run a single scenario through the Full GMAIS cell
 * ``gtkg``       - build the Ground Truth Knowledge Graph and print its stats
 * ``export``     - run the ablation and write the observation matrix to CSV/JSON
+* ``campaign``   - run the campaign and write the full reproducible results
+                   package (observation matrix, H1-H4 inference, publication
+                   tables in Markdown/LaTeX, figures, and a checksummed manifest)
 
 Examples::
 
     python -m gmais.cli run --per-tier 10
     python -m gmais.cli run --per-tier 45 --backend openai
     python -m gmais.cli export --per-tier 45 --out results.csv
+    python -m gmais.cli campaign --per-tier 45 --out results/
 """
 
 from __future__ import annotations
@@ -93,6 +97,26 @@ def cmd_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_campaign(args: argparse.Namespace) -> int:
+    from .campaign import run_campaign
+
+    config = _config_from_args(args)
+    run_campaign(config, outdir=args.out, with_figures=not args.no_figures)
+    return 0
+
+
+def cmd_timing(args: argparse.Namespace) -> int:
+    from .campaign import measure_timing
+
+    config = _config_from_args(args)
+    summary = measure_timing(config, repeats=args.repeats)
+    if args.out:
+        with open(args.out, "w", encoding="utf-8") as fh:
+            json.dump(summary, fh, indent=2, default=str)
+        print(f"\nWrote {args.out}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="gmais", description="GMAIS ablation harness")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -124,6 +148,25 @@ def build_parser() -> argparse.ArgumentParser:
     p_ex.add_argument("--out", default="gmais_observations.csv",
                       help="output file (.csv or .json)")
     p_ex.set_defaults(func=cmd_export)
+
+    p_camp = sub.add_parser(
+        "campaign",
+        help="run the campaign and write the full reproducible results package")
+    add_common(p_camp)
+    p_camp.add_argument("--out", default="results",
+                        help="output directory (default: results/)")
+    p_camp.add_argument("--no-figures", action="store_true",
+                        help="skip figure rendering (no matplotlib required)")
+    p_camp.set_defaults(func=cmd_campaign)
+
+    p_tim = sub.add_parser(
+        "timing",
+        help="aggregate measured governance cost over repeated campaigns")
+    add_common(p_tim)
+    p_tim.add_argument("--repeats", type=int, default=5,
+                       help="number of campaigns to aggregate (default 5)")
+    p_tim.add_argument("--out", default=None, help="write the summary as JSON")
+    p_tim.set_defaults(func=cmd_timing)
 
     return parser
 

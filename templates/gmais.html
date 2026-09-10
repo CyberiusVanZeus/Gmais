@@ -5,93 +5,238 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GMAIS &mdash; Governance-Mediated Intelligence Analysis System</title>
   <style>
-    :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --fg:#e6edf3; --mut:#8b949e; --ok:#3fb950; --bad:#f85149; --acc:#58a6ff; }
+    :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --fg:#e6edf3; --mut:#8b949e; --ok:#3fb950; --bad:#f85149; --warn:#d29922; --acc:#58a6ff; }
     * { box-sizing: border-box; }
     body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; padding: 2rem; }
     h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
     .sub { color: var(--mut); margin-bottom: 1.5rem; font-size: .9rem; }
     .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
-    form { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
-    select, button { background: #21262d; color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: .5rem .75rem; font-size: .9rem; }
-    button { background: var(--acc); color: #0d1117; font-weight: 600; cursor: pointer; border: none; }
-    .scenario-text { color: var(--mut); font-size: .85rem; line-height: 1.5; max-height: 7rem; overflow: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
-    th, td { text-align: left; padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
-    th { color: var(--mut); font-weight: 600; }
-    .yes { color: var(--ok); } .no { color: var(--bad); }
-    .pill { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; border: 1px solid var(--line); }
-    .gold { color: var(--acc); }
-    code { background:#21262d; padding:.05rem .35rem; border-radius:4px; }
-    .legend { color: var(--mut); font-size: .78rem; margin-top: .75rem; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; }
+    label { font-size:.85rem; color: var(--mut); display:block; margin-bottom:.35rem; }
+    input[type=number], input[type=password], input[type=text], input[type=url], textarea, select { width:100%; background:#21262d; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:.5rem .6rem; font-size:.9rem; font-family:inherit; }
+    textarea { resize: vertical; min-height: 4.5rem; }
+    .providers { display:flex; flex-direction:column; gap:.75rem; }
+    .provider-row { display:flex; flex-direction:column; gap:.4rem; }
+    .provider-check { display:flex; align-items:center; gap:.5rem; color:var(--fg); font-size:.9rem; font-weight:600; cursor:pointer; }
+    .provider-fields { display:none; flex-direction:column; gap:.4rem; padding:.6rem .75rem; background:#0d1117; border-radius:6px; border:1px solid var(--line); margin-top:.1rem; }
+    .provider-fields.open { display:flex; }
+    .provider-fields label { margin-bottom:0; }
+    .row { margin-bottom:1rem; }
+    button { background: var(--acc); color:#0d1117; font-weight:600; cursor:pointer; border:none; border-radius:6px; padding:.6rem 1.2rem; font-size:.95rem; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    #stopBtn { background: var(--bad); color:#fff; display:none; }
+    .feed { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.78rem; max-height: 22rem; overflow:auto; background:#0b0f14; border:1px solid var(--line); border-radius:8px; padding:.75rem; }
+    .ev { display:flex; gap:.5rem; padding:.12rem 0; }
+    .ev .stage { color:var(--acc); min-width:5.5rem; }
+    .ev.done .stage { color: var(--ok); }
+    .ev.warn .stage { color: var(--warn); }
+    .ev.error .stage { color: var(--bad); }
+    .ev .msg { color: var(--fg); }
+    .hint { color: var(--mut); font-size:.78rem; margin-top:.3rem; }
+    .badge { display:inline-block; padding:.05rem .45rem; border-radius:999px; border:1px solid var(--line); font-size:.72rem; color:var(--mut); }
   </style>
 </head>
 <body>
-  <h1>GMAIS &mdash; Governance-Mediated Intelligence Analysis System</h1>
-  <div class="sub">Minimum Viable Architecture &middot; 2&times;2 factorial ablation (Validation &times; Governance) &middot; offline deterministic backend</div>
+{% if demo_mode %}
+<div style="background:#fdf0e6;border-bottom:2px solid #eb6834;color:#0b0b0b;
+            padding:10px 16px;font:600 13px/1.5 system-ui,sans-serif;text-align:center">
+  DEMO MODE &mdash; runs use the deterministic offline backend.
+  No provider is contacted and nothing is billed.
+  Unset <code>GMAIS_DEMO_MODE</code> to use real models.
+</div>
+{% endif %}
 
+  <h1>GMAIS &mdash; Governance-Mediated Intelligence Analysis System</h1>
+  <div class="sub">Minimum Viable Architecture &middot; 2&times;2 factorial ablation (Validation &times; Governance) &middot; multi-provider &middot; live operational telemetry</div>
+
+  <!-- ============ Run configuration ============ -->
   <div class="panel">
-    <form method="post">
-      <label for="sid">Scenario:</label>
-      <select name="sid" id="sid" onchange="this.form.submit()">
-        {% for s in scenarios %}
-          <option value="{{ s.sid }}" {% if s.sid == scenario.sid %}selected{% endif %}>
-            {{ s.sid }} &mdash; {{ s.tier }} tier ({{ s.claims|length }} claims, {{ s.injected_cids|length }} injected)
-          </option>
-        {% endfor %}
-      </select>
-      <button type="submit">Analyse</button>
+    <form id="runForm" onsubmit="return startRun(event)">
+      <div class="grid">
+        <div>
+          <div class="row">
+            <label for="runs">Number of runs / scenarios (each processed through all 4 factorial cells; max 540)</label>
+            <input type="number" id="runs" name="runs" min="1" max="540" value="3" />
+          </div>
+          <div class="row">
+            <label for="tier">Scenario complexity tier</label>
+            <select id="tier" name="tier">
+              <option value="all">All tiers (Low + Medium + High, interleaved)</option>
+              <option value="low">Low — 3 sources, 4 claims, 1 injected</option>
+              <option value="medium">Medium — 5 sources, 6 claims, 2 injected</option>
+              <option value="high">High — 7 sources, 8 claims, 3 injected</option>
+            </select>
+          </div>
+          <div class="row">
+            <label>LLM providers (used round-robin; falls back to local)</label>
+            <div class="providers">
+
+              <!-- OpenAI -->
+              <div class="provider-row">
+                <label class="provider-check">
+                  <input type="checkbox" name="providers" value="openai" onchange="toggleProvider('openai', this.checked)" />
+                  OpenAI
+                </label>
+                <div class="provider-fields" id="fields-openai">
+                  <label for="openai_key">API key</label>
+                  <input type="password" id="openai_key" placeholder="sk-..." autocomplete="off" />
+                </div>
+              </div>
+
+              <!-- Claude -->
+              <div class="provider-row">
+                <label class="provider-check">
+                  <input type="checkbox" name="providers" value="claude" onchange="toggleProvider('claude', this.checked)" />
+                  Claude
+                </label>
+                <div class="provider-fields" id="fields-claude">
+                  <label for="claude_key">API key</label>
+                  <input type="password" id="claude_key" placeholder="sk-ant-..." autocomplete="off" />
+                </div>
+              </div>
+
+              <!-- Local -->
+              <div class="provider-row">
+                <label class="provider-check">
+                  <input type="checkbox" name="providers" value="local" checked onchange="toggleProvider('local', this.checked)" />
+                  Local
+                </label>
+                <div class="provider-fields open" id="fields-local">
+                  <label for="local_url">Server URL (default: Ollama at http://localhost:11434/v1)</label>
+                  <input type="url" id="local_url" placeholder="http://localhost:11434/v1" autocomplete="off" />
+                  <div class="hint" style="margin-top:.3rem;">Uses <code>llama3.2:1b</code> by default. Web search augmentation is built-in (DuckDuckGo, no key needed).</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="row">
+            <label><input type="checkbox" id="websearch" name="websearch" /> Validator web search against verified government &amp; institution sources</label>
+          </div>
+          <div class="row">
+            <label for="sources">Analyst-supplied sources for the Validator (one per line: <code>url | note</code>)</label>
+            <textarea id="sources" name="sources" placeholder="https://www.cisa.gov/advisory/... | confirms intrusion timeline&#10;https://www.un.org/... | corroborates actor"></textarea>
+            <div class="hint">Domains on the verified allowlist (.gov, .mil, .int, un.org, who.int, &hellip;) are marked verified.</div>
+          </div>
+        </div>
+      </div>
+      <button type="submit" id="runBtn">Activate Run</button>
+      <button type="button" id="stopBtn" onclick="stopRun()">Stop</button>
+      <span id="status" class="badge" style="margin-left:.75rem;">idle</span>
     </form>
   </div>
 
+  <!-- ============ Live operational activity feed ============ -->
   <div class="panel">
-    <div style="margin-bottom:.5rem;">
-      <strong>{{ scenario.sid }}</strong>
-      &middot; gold hypothesis <span class="gold">{{ gold }}</span>
-      &middot; injected claims <code>{{ injected }}</code>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;">
+      <strong style="font-size:.95rem;">Operational Activity &mdash; behind-the-scenes</strong>
+      <span class="badge">Server-Sent Events</span>
     </div>
-    <div class="scenario-text">{{ scenario.text }}</div>
+    <div id="feed" class="feed"><div class="ev"><span class="stage">idle</span><span class="msg">Configure a run and press Activate.</span></div></div>
   </div>
 
-  <div class="panel">
-    <table>
-      <thead>
-        <tr>
-          <th>Cell</th><th>V</th><th>G</th>
-          <th>Predicted</th><th>Correct</th><th>Injections detected</th>
-          <th>Conf</th><th>Latency (ms)</th><th>&Delta;L</th>
-          <th>Tokens</th><th>&Delta;C</th><th>Gov events</th><th>Redacted</th><th>Audit</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in rows %}
-        <tr>
-          <td><strong>{{ r.cell }}</strong></td>
-          <td>{{ '1' if r.validation else '0' }}</td>
-          <td>{{ '1' if r.governance else '0' }}</td>
-          <td class="gold">{{ r.predicted }}</td>
-          <td class="{{ 'yes' if r.correct else 'no' }}">{{ '✓' if r.correct else '✗' }}</td>
-          <td><code>{{ r.detected }}</code></td>
-          <td>{{ '%.2f'|format(r.confidence) }}</td>
-          <td>{{ '%.1f'|format(r.latency_ms) }}</td>
-          <td>{{ '+%.1f'|format(r.delta_latency) if r.delta_latency else '—' }}</td>
-          <td>{{ r.tokens }}</td>
-          <td>{{ '+%d'|format(r.delta_tokens) if r.delta_tokens else '—' }}</td>
-          <td>{{ r.events if r.events is not none else '—' }}</td>
-          <td>{{ r.redacted if r.redacted is not none else '—' }}</td>
-          <td>
-            {% if r.audit_intact is none %}<span class="pill">n/a</span>
-            {% elif r.audit_intact %}<span class="pill yes">intact</span>
-            {% else %}<span class="pill no">broken</span>{% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <div class="legend">
-      &Delta;L and &Delta;C are latency and token differentials versus the Baseline (V=0, G=0) cell &mdash; the raw inputs to the
-      Security Tax <code>ST = &alpha;&middot;z(&Delta;L) + &beta;&middot;z(&Delta;C)</code>. Validation drives accuracy and injection
-      detection (H1); governance drives the latency/token tax (H2); their coupling is the interaction (H3).
-    </div>
-  </div>
+  <!-- ============ Results (injected on completion) ============ -->
+  <div id="results"></div>
+
+<script>
+let es = null;
+let currentSid = null;
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function toggleProvider(name, open) {
+  const el = document.getElementById('fields-' + name);
+  if (el) el.classList.toggle('open', open);
+}
+
+function setRunning(running) {
+  document.getElementById('runBtn').disabled = running;
+  document.getElementById('stopBtn').style.display = running ? 'inline-block' : 'none';
+}
+
+function stopRun() {
+  if (currentSid) {
+    fetch('/stop?sid=' + currentSid);
+    document.getElementById('status').textContent = 'stopping…';
+    document.getElementById('stopBtn').disabled = true;
+  }
+  if (es) { es.close(); es = null; }
+}
+
+function startRun(e){
+  e.preventDefault();
+  if (es) { es.close(); es = null; }
+  currentSid = null;
+  const runs = document.getElementById('runs').value || '3';
+  const tier  = document.getElementById('tier').value || 'all';
+  const providers = Array.from(document.querySelectorAll('input[name=providers]:checked')).map(c=>c.value);
+  if (!providers.length) { alert('Select at least one LLM provider.'); return false; }
+  const websearch = document.getElementById('websearch').checked ? '1' : '0';
+  const sources = document.getElementById('sources').value;
+  const openai_key = (document.getElementById('openai_key') || {value:''}).value.trim();
+  const claude_key = (document.getElementById('claude_key') || {value:''}).value.trim();
+  const local_url  = (document.getElementById('local_url')  || {value:''}).value.trim();
+  const params = new URLSearchParams({ runs, tier, providers: providers.join(','), websearch, sources });
+  if (openai_key) params.set('openai_key', openai_key);
+  if (claude_key) params.set('claude_key', claude_key);
+  if (local_url)  params.set('local_url', local_url);
+
+  const feed = document.getElementById('feed');
+  const resultsEl = document.getElementById('results');
+  feed.innerHTML = '';
+  resultsEl.innerHTML = '';
+  setRunning(true);
+  document.getElementById('stopBtn').disabled = false;
+  document.getElementById('status').textContent = 'running…';
+
+  const expectedSections = providers.length > 1 ? providers.length + 1 : 1;
+  let sectionCount = 0;
+
+  es = new EventSource('/stream?' + params.toString());
+
+  es.addEventListener('sid', (m) => {
+    currentSid = JSON.parse(m.data).sid;
+  });
+
+  es.addEventListener('activity', (m) => {
+    const ev = JSON.parse(m.data);
+    const div = document.createElement('div');
+    div.className = 'ev ' + (ev.status || 'running');
+    div.innerHTML = '<span class="stage">'+esc(ev.stage)+'</span><span class="msg">'+esc(ev.message)+'</span>';
+    feed.appendChild(div);
+    feed.scrollTop = feed.scrollHeight;
+  });
+
+  es.addEventListener('result', (m) => {
+    sectionCount++;
+    const payload = JSON.parse(m.data);
+    if (sectionCount > 1) {
+      const sep = document.createElement('hr');
+      sep.style.cssText = 'border:none;border-top:2px solid #30363d;margin:1.5rem 0;';
+      resultsEl.appendChild(sep);
+    }
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = payload.html;
+    resultsEl.appendChild(wrapper);
+    wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('status').textContent =
+      `results: ${sectionCount}/${expectedSections}`;
+  });
+
+  es.addEventListener('end', () => {
+    es.close(); es = null;
+    setRunning(false);
+    document.getElementById('status').textContent = 'done';
+  });
+
+  es.onerror = () => {
+    document.getElementById('status').textContent = 'error — check activity feed';
+    setRunning(false);
+    if (es) { es.close(); es = null; }
+  };
+  return false;
+}
+</script>
 </body>
 </html>

@@ -21,7 +21,9 @@ from typing import Dict, List
 from ..ach import ACHMatrix, ACHResult, CONSISTENT, Evidence, INCONSISTENT, NEUTRAL
 from ..admiralty import AdmiraltyGrade, grade_source
 from ..llm.base import LLMBackend
+from ..noise import NoiseModel
 from ..scenarios import Scenario
+from ..timing import ComponentTimings, NullTimings
 from .worker import Message, WorkerOutput
 
 # Claims graded below this Admiralty confidence are rejected as unreliable.
@@ -43,6 +45,9 @@ class ValidationResult:
     messages: List[Message] = field(default_factory=list)
     latency_ms: float = 0.0
     tokens: int = 0
+    # Count of verified government/institution sources that corroborated claims
+    # (web search + analyst-supplied), used to firm up the Validator's confidence.
+    verified_corroboration: int = 0
 
 
 class ValidatorAgent:
@@ -57,10 +62,31 @@ class ValidatorAgent:
         self.convergence_threshold = convergence_threshold
         self.max_iterations = max_iterations
 
-    def _build_ach(self, scenario: Scenario, surviving) -> ACHMatrix:
+    def _grade(self, scenario: Scenario, claim, noise: NoiseModel) -> AdmiraltyGrade:
+        """Grade one claim through the observation and grader channels.
+
+        The Validator never sees ground truth. It sees the claim's source record
+        *as observed* -- which for a camouflaged injection looks corroborated and
+        plausible -- and then applies its own grading, which slips by one step on
+        either axis at the pre-registered rate. Both perturbations are pure
+        functions of the campaign seed, so the grade a claim receives is the same
+        in every factorial cell that grades it.
+        """
+
+        observed = noise.observed_source(
+            scenario.sid, claim.cid, claim.source, claim.is_injected
+        )
+        grade = grade_source(observed)
+        reliability, credibility = noise.perturb_grade(
+            scenario.sid, claim.cid, grade.reliability, grade.credibility
+        )
+        return AdmiraltyGrade(reliability, credibility)
+
+    def _build_ach(self, scenario: Scenario, surviving,
+                   grades: Dict[str, AdmiraltyGrade]) -> ACHMatrix:
         matrix = ACHMatrix(scenario.hypotheses)
         for c in surviving:
-            grade = grade_source(c.source)
+            grade = grades[c.cid]
             consistency = {}
             for h in scenario.hypotheses:
                 if h == c.supports:
@@ -75,19 +101,42 @@ class ValidatorAgent:
             )
         return matrix
 
-    def validate(self, scenario: Scenario, worker_output: WorkerOutput) -> ValidationResult:
+    def validate(self, scenario: Scenario, worker_output: WorkerOutput,
+                 activity=None, web_search=None,
+                 noise: NoiseModel | None = None,
+                 timings: ComponentTimings | None = None) -> ValidationResult:
+        # ``activity`` is the live-feed emit callable; ``web_search`` is an
+        # optional VerifiedSourceSearch the Validator uses to corroborate claims.
+        emit = activity or (lambda *a, **k: None)
+        noise = noise or NoiseModel.disabled()
+        timings = timings or NullTimings()
         grades: Dict[str, AdmiraltyGrade] = {}
         surviving = []
         detected: List[str] = []
 
         # Step 1-2: Admiralty grading and reliability-floor filtering.
-        for c in scenario.claims:
-            grade = grade_source(c.source)
-            grades[c.cid] = grade
-            if grade.confidence < RELIABILITY_FLOOR:
-                detected.append(c.cid)  # flagged as adversarial/unreliable
-            else:
-                surviving.append(c)
+        emit("validator", "Grading sources with the Admiralty Code (reliability x credibility)")
+        with timings.measure("validator"):
+            for c in scenario.claims:
+                grade = self._grade(scenario, c, noise)
+                grades[c.cid] = grade
+                if grade.confidence < RELIABILITY_FLOOR:
+                    detected.append(c.cid)  # flagged as adversarial/unreliable
+                else:
+                    surviving.append(c)
+        emit("validator", f"Admiralty grading complete: {len(detected)} low-reliability "
+             f"claim(s) flagged, {len(surviving)} retained", status="done")
+
+        # Optional: corroborate against verified government/institution sources.
+        verified_corroboration = 0
+        if web_search is not None:
+            query = f"{scenario.text[:120]} {' '.join(scenario.entities)}"
+            emit("websearch", "Querying verified government & institutional sources")
+            hits = web_search.corroborate(query)
+            verified_corroboration = sum(1 for h in hits if h.verified)
+            emit("websearch", f"Corroboration: {verified_corroboration} verified source(s) "
+                 f"of {len(hits)} returned", status="done",
+                 sources=[h.domain for h in hits if h.verified][:5])
 
         # Steps 3-4: ACH under the bounded-rationality critique loop.
         latency = 0.0
@@ -121,16 +170,21 @@ class ValidatorAgent:
                 )
             )
 
-            ach_result = self._build_ach(scenario, surviving).evaluate()
+            with timings.measure("validator"):
+                ach_result = self._build_ach(scenario, surviving, grades).evaluate()
             convergence = ach_result.convergence
             # CI width shrinks as convergence rises and evidence accumulates.
             ci_width = round(max(0.0, (1.0 - convergence) * 0.6), 4)
-            confidence = round(0.5 + 0.5 * convergence, 4)
+            # Verified external corroboration firms up confidence (capped at 1.0).
+            corroboration_boost = min(0.1, 0.02 * verified_corroboration)
+            confidence = round(min(1.0, 0.5 + 0.5 * convergence + corroboration_boost), 4)
 
             if convergence >= self.convergence_threshold or ci_width < self.ci_width_threshold:
                 break  # bounded-rationality satisficing halt
 
         predicted = ach_result.selected if ach_result else worker_output.predicted_hypothesis
+        emit("ach", f"ACH selected {predicted} (convergence={ach_result.convergence}, "
+             f"{iterations} critique iteration(s))", status="done")
 
         messages = critique_messages + [
             Message(
@@ -159,4 +213,5 @@ class ValidatorAgent:
             messages=messages,
             latency_ms=round(latency, 3),
             tokens=tokens,
+            verified_corroboration=verified_corroboration,
         )

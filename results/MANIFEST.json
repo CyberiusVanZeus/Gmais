@@ -1,0 +1,258 @@
+{
+  "campaign": {
+    "seed": 20260605,
+    "scenarios_per_tier": 45,
+    "observations": 540,
+    "cells": [
+      "Baseline",
+      "V-only",
+      "G-only",
+      "Full"
+    ],
+    "backend": "mock",
+    "model": "gmais-mva-q4_k_m"
+  },
+  "preregistered_constants": {
+    "seed": 20260605,
+    "n_workers": 3,
+    "worker_temperature": 0.7,
+    "validator_temperature": 0.2,
+    "ci_width_threshold": 0.15,
+    "convergence_threshold": 0.85,
+    "max_critique_iterations": 4,
+    "theta_policy": 0.6,
+    "sensitivity_threshold": 0.7,
+    "delegation_secret": "gmais-delegation-key",
+    "queue_saturation_margin": 0.15,
+    "st_alpha": 0.5,
+    "st_beta": 0.5,
+    "st_band_low": 0.5,
+    "st_band_high": 1.5,
+    "scenarios_per_tier": 45,
+    "noise_enabled": true,
+    "grading_error_rate": 0.12,
+    "injection_camouflage_rate": 0.18,
+    "provenance_degradation_rate": 0.1,
+    "peer_anchoring_rate": 0.22,
+    "measure_wallclock": true,
+    "timing_warmup_observations": 12,
+    "backend": "mock",
+    "model": "gmais-mva-q4_k_m"
+  },
+  "noise_model": {
+    "enabled": true,
+    "seed": 20260605,
+    "grading_error_rate": 0.12,
+    "injection_camouflage_rate": 0.18,
+    "provenance_degradation_rate": 0.1,
+    "peer_anchoring_rate": 0.22,
+    "realised": {
+      "injected_claims": 270,
+      "camouflaged_claims": 59,
+      "realised_camouflage_rate": 0.2185,
+      "genuine_claims": 810,
+      "degraded_claims": 77,
+      "realised_degradation_rate": 0.0951
+    }
+  },
+  "environment": {
+    "python_version": "3.12.3",
+    "python_implementation": "CPython",
+    "platform": "Linux-6.8.0-139-generic-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "cpu_count": 3,
+    "clock": "time.perf_counter_ns",
+    "clock_resolution_ns": 39.0,
+    "executable": "/root/Gmais/.venv/bin/python",
+    "platform_machine": "x86_64",
+    "libraries": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "matplotlib": "3.11.1"
+    }
+  },
+  "reproduce": {
+    "command": "python -m gmais.cli campaign --per-tier 45 --seed 20260605 --out results",
+    "determinism": "Identical seed and configuration reproduce the observation matrix bit for bit. Measured wall-clock columns are hardware-dependent and are expected to differ; every other column must match exactly.",
+    "hardware_dependent_columns": [
+      "measured_latency_ms",
+      "measured_governance_ms",
+      "measured_worker_ms",
+      "measured_validator_ms",
+      "measured_policy_ms",
+      "measured_audit_ms",
+      "measured_redaction_ms",
+      "measured_queue_ms"
+    ]
+  },
+  "artefacts": {
+    "observations.csv": {
+      "sha256": "a19057ca6c9b23bcd7405af2a1a1c86abe1a06b75d948b77848342c831df2546",
+      "bytes": 70510
+    },
+    "security_tax.csv": {
+      "sha256": "b816e2b863322c413a3b9debb1174c865f3a26f6fceab857c33601efd9f19e6b",
+      "bytes": 39866
+    },
+    "results.json": {
+      "sha256": "bb9d4cae1b4116b19746300898577beb5a379e8c7548a4a09a480bae185dfff9",
+      "bytes": 27681
+    },
+    "REPORT.txt": {
+      "sha256": "12effa88b9c2651c3beeb1719b6a090bb384a1fcd3303bdd66a1e5bc9a50b119",
+      "bytes": 6369
+    },
+    "tables/all_tables.md": {
+      "sha256": "9375a7337a1bbe2bf5ee66d63ab072527bd94711aff2bab923c34c36ee2f3261",
+      "bytes": 7193
+    },
+    "tables/all_tables.tex": {
+      "sha256": "91e884496b41e174cee1c0674143b5901a2696ccdfe5e5d0cf1eec928f1f224c",
+      "bytes": 8336
+    },
+    "tables/table1.md": {
+      "sha256": "a98d508196ba8bf60e6b5840323caef03252f7e38d2ee8c0edd2c64a81922ccb",
+      "bytes": 606
+    },
+    "tables/table1.tex": {
+      "sha256": "402e46be55249d0e408f0fbfe62d44278442755c88e9513ce368a695a1ab8539",
+      "bytes": 748
+    },
+    "tables/table2.md": {
+      "sha256": "324cb97ff2a5a4e3a0b1af591e86bfcfc9c1209a27e46c636b55d0354d33bce9",
+      "bytes": 795
+    },
+    "tables/table2.tex": {
+      "sha256": "6825cd6276e1fcbbad62f3b208352dd63529af9f0ebfaf3bea10739a5e28528a",
+      "bytes": 925
+    },
+    "tables/table3.md": {
+      "sha256": "f72d2223cea083b4deaddb630da11a9b42358a6d88b4980f2c17226c9e6e8b4e",
+      "bytes": 624
+    },
+    "tables/table3.tex": {
+      "sha256": "f8550858d0f744594f404fab80e5786bc73e1bf8489a9e09ca54f260004e735a",
+      "bytes": 745
+    },
+    "tables/table4.md": {
+      "sha256": "ddb72e54fa4ef2522aa3b7c736da5b1d4315168facad1c511b49d933c82f4774",
+      "bytes": 1504
+    },
+    "tables/table4.tex": {
+      "sha256": "7a04449c715ee4f0f9397d81df9bf9f95a897e9b090e923c8faeb6d4bdbbdea1",
+      "bytes": 1629
+    },
+    "tables/table5.md": {
+      "sha256": "37c65145f28eced68d54dae8798d8eab3b11216903cd20156244034575ba9da9",
+      "bytes": 853
+    },
+    "tables/table5.tex": {
+      "sha256": "a4efbe8c4d937eebe9fe7121e8a19d22d66bc7a83030a8206d077da1b05e683f",
+      "bytes": 956
+    },
+    "tables/table6.md": {
+      "sha256": "2ac431f2d4a1ea68db678e9cc55924f193eae8c5b4dfc04c9f95b2dbd061923e",
+      "bytes": 684
+    },
+    "tables/table6.tex": {
+      "sha256": "0a6849497a4f8eabc61a3280b075c3684d08b2679e9fb8c5f036318458528c6b",
+      "bytes": 794
+    },
+    "tables/table7.md": {
+      "sha256": "9fafc28d5ce8d3ec0227b2ef078172ba7310d6424d4430f2e793ca7dc82b6cfa",
+      "bytes": 996
+    },
+    "tables/table7.tex": {
+      "sha256": "3b6fb107cbb017d5e67872adce8ee2c4e7f30648c5c02b664550b3737d76970e",
+      "bytes": 1113
+    },
+    "tables/table8.md": {
+      "sha256": "f84cb63dbe41817d34c0e42a12024cc9430615071c1446cebe66601702cb5115",
+      "bytes": 614
+    },
+    "tables/table8.tex": {
+      "sha256": "239c490be51d7b6c3ec8db1505bba06f02076ef10bd9e513bb4e341fe1753cb1",
+      "bytes": 767
+    },
+    "tables/table9.md": {
+      "sha256": "07441c9a8ebd241b2b898a2108832d08db480cb8c6b6262b6afe1a2edd8fa94c",
+      "bytes": 501
+    },
+    "tables/table9.tex": {
+      "sha256": "cfaf4d6c5a78e53cb2fdfeb7b6815601d63d539cb2fddca50560147a325116ad",
+      "bytes": 643
+    },
+    "figures/fig01_architecture.pdf": {
+      "sha256": "fa7d02a682db882cba6e519971b2b60375760e7f989f8902d5b4abda5c8f9695",
+      "bytes": 55390
+    },
+    "figures/fig01_architecture.png": {
+      "sha256": "4612fbb2dea4a0f0d168f0548f7b7e87ace4bf0ff921db7e28c080d6cece182c",
+      "bytes": 403272
+    },
+    "figures/fig02_ablation_performance.pdf": {
+      "sha256": "03245f9dd91e806c6137214c6a382033f30957483f268b2e2ee65af3dc75fe95",
+      "bytes": 32734
+    },
+    "figures/fig02_ablation_performance.png": {
+      "sha256": "62e7b1248b0dd82c2d2ec6bec5a14b840f2b9d6799b711912a28e7922507b74c",
+      "bytes": 213099
+    },
+    "figures/fig03_overhead.pdf": {
+      "sha256": "9ecb69eafdc7a593c592f752a87b1cf0831a853cc0d946a20cb84a3f472a549b",
+      "bytes": 31593
+    },
+    "figures/fig03_overhead.png": {
+      "sha256": "3af57c4730cf8ac6751710360dea8f5b355ccd131317f663fa22cdfde270b4f0",
+      "bytes": 242706
+    },
+    "figures/fig04_security_tax.pdf": {
+      "sha256": "14053f65f9638bb15e628af43d72f050b0d6a88c0624caa5db3eeb91fba98161",
+      "bytes": 40861
+    },
+    "figures/fig04_security_tax.png": {
+      "sha256": "61e17f5e5a701b4ce592a53c599fe0f11f9754484c1fa77d4b047f11d0084412",
+      "bytes": 243421
+    },
+    "figures/fig05_interaction.pdf": {
+      "sha256": "229f582125c1958551291771b61218c999036257968e0434273e7fc53bc20b4e",
+      "bytes": 28085
+    },
+    "figures/fig05_interaction.png": {
+      "sha256": "768c261b2fbffa78c42101e07f13da1619953d238f3834094aacdd79fa333d71",
+      "bytes": 169334
+    },
+    "figures/fig06_calibration.pdf": {
+      "sha256": "8eb0127fc1a88a299199c70f47bcbfc6ca3275f67356447c1f501972e87c692e",
+      "bytes": 31195
+    },
+    "figures/fig06_calibration.png": {
+      "sha256": "9655068418c7d434b7ea0a19c7ac8bc6411cc6fdc2813178178ea0fc3e65a2e5",
+      "bytes": 229904
+    },
+    "figures/fig07_alpha_sensitivity.pdf": {
+      "sha256": "53850ac5c9031e8673632dc7ed74b635d7f9efddcffe10a7df32ff7ade761ff0",
+      "bytes": 27397
+    },
+    "figures/fig07_alpha_sensitivity.png": {
+      "sha256": "616a7636acc464ddfad6db5801f7b7c819380059cc9bc2695c5a09c77aea0e6f",
+      "bytes": 105011
+    },
+    "figures/fig08_governance_breakdown.pdf": {
+      "sha256": "e2f5dc7f1a19c7fca3f808a208fb700d0111b302bc5ea62cd48507ef3b8bcd24",
+      "bytes": 40452
+    },
+    "figures/fig08_governance_breakdown.png": {
+      "sha256": "908f540e6e5246dd9112ab07e68d97dd94e31afd86875b2630d2cf78a8f100f5",
+      "bytes": 285757
+    },
+    "figures/fig09_tax_by_tier.pdf": {
+      "sha256": "113982f95b402736eccdb54e327bc4d0ff5ce8e7aaeaaec773e638838fb9e0e4",
+      "bytes": 26430
+    },
+    "figures/fig09_tax_by_tier.png": {
+      "sha256": "bc9fab65730e3aa4c3114c9333563ef2f9460357d0ffec293318da2c676f760e",
+      "bytes": 112433
+    }
+  }
+}

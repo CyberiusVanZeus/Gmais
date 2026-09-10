@@ -1,0 +1,65 @@
+{
+  "repeats": 9,
+  "host": {
+    "python_version": "3.12.3",
+    "python_implementation": "CPython",
+    "platform": "Linux-6.8.0-139-generic-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "cpu_count": 3,
+    "clock": "time.perf_counter_ns",
+    "clock_resolution_ns": 39.0
+  },
+  "per_event_us": {
+    "audit_record_us": {
+      "median": 36.625,
+      "min": 31.499,
+      "max": 43.968,
+      "spread_ratio": 1.4
+    },
+    "policy_eval_us": {
+      "median": 17.387,
+      "min": 13.729,
+      "max": 20.634,
+      "spread_ratio": 1.5
+    },
+    "redaction_us": {
+      "median": 11.824,
+      "min": 9.844,
+      "max": 13.15,
+      "spread_ratio": 1.34
+    },
+    "queue_us": {
+      "median": 3.642,
+      "min": 2.949,
+      "max": 10.767,
+      "spread_ratio": 3.65
+    },
+    "governance_total_us": {
+      "median": 84.379,
+      "min": 73.604,
+      "max": 95.77,
+      "spread_ratio": 1.3
+    }
+  },
+  "audit_share_of_mediation": [
+    0.4406,
+    0.4232,
+    0.4886,
+    0.4079,
+    0.4542,
+    0.4427,
+    0.3733,
+    0.4962,
+    0.4807
+  ],
+  "component_ranking_stable": true,
+  "dominant_component_stable": true,
+  "dominant_component": "audit_record_us",
+  "ranking": [
+    "audit_record_us",
+    "policy_eval_us",
+    "redaction_us",
+    "queue_us"
+  ],
+  "note": "Absolute magnitudes are host- and load-dependent; the component ordering is the robust result."
+}

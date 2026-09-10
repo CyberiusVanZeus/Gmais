@@ -1,0 +1,12 @@
+**Table 4.** Confirmatory tests of H1–H3 with Holm–Bonferroni adjustment across the six-test family. All tests are paired within scenario.
+
+| Hypothesis / contrast | Test | n | Statistic | p | p (Holm) | Effect size | Estimate [95% CI] |
+|:--|:--|--:|--:|--:|--:|--:|:--|
+| H1 \| G=0: Baseline -> V-only | McNemar (exact) | 135 | 79.0 | < .0001 | < .0001 | odds ratio (discordant) = 53.000 | — |
+| H1 \| G=1: G-only -> Full | McNemar (exact) | 135 | 60.0 | < .0001 | < .0001 | odds ratio (discordant) = 40.333 | — |
+| H2 \| V=0: latency, Baseline -> G-only | Wilcoxon signed-rank | 135 | 0.0 | < .0001 | < .0001 | rank-biserial r = 1.000 | +21.000 [+21.000, +21.000] |
+| H2 \| V=1: latency, V-only -> Full | Wilcoxon signed-rank | 135 | 0.0 | < .0001 | < .0001 | rank-biserial r = 1.000 | +42.000 [+42.000, +42.000] |
+| H2: token consumption, ungoverned -> governed | Wilcoxon signed-rank | 135 | 0.0 | < .0001 | < .0001 | rank-biserial r = 1.000 | +108.000 [+108.000, +108.000] |
+| H3: V x G interaction on latency (ms) | Wilcoxon signed-rank | 135 | 0.0 | < .0001 | < .0001 | rank-biserial r = 1.000 | +21.000 [+21.000, +21.000] |
+
+*Estimate is the Hodges–Lehmann shift with the exact distribution-free signed-rank interval read off the Walsh averages; for McNemar the effect size is the discordant-pair odds ratio (Haldane–Anscombe corrected). A degenerate interval indicates a differential that is constant across scenarios by construction — see the note on the deployment cost model.*

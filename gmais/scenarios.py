@@ -52,6 +52,9 @@ class Scenario:
     claims: List[Claim]
     hypotheses: Dict[str, str]
     gold_hypothesis: str
+    # Declared named entities (proper nouns) the Governance Layer redacts on
+    # worker-to-worker peer exchange to reduce inter-agent bias (Section 3.3.1).
+    entities: List[str] = field(default_factory=list)
     # cached complexity metrics (Section 3.2.2)
     complexity: Dict[str, float] = field(default_factory=dict)
 
@@ -130,15 +133,23 @@ def within_tolerance(scenario: Scenario) -> Dict[str, bool]:
 # --------------------------------------------------------------------------- #
 # Deterministic corpus generation
 # --------------------------------------------------------------------------- #
+# Fictional named entities (proper nouns) so the corpus exercises named-entity
+# redaction without invoking real-world actors or analyst priors.
+_ENTITY_POOL = [
+    "Aldoria", "Beronia", "Castoria", "Dravmark", "Esmara",
+    "Farland", "Galvia", "Harnia", "Ivenia", "Jovara",
+]
+
+# (topic, benign-hypothesis text, hostile-hypothesis text)
 _TOPICS = [
-    ("border incursion", "Country A forces", "an accidental patrol", "a deliberate raid"),
-    ("port explosion", "the harbour authority", "an industrial accident", "sabotage"),
-    ("currency crash", "the central bank", "market speculation", "a coordinated attack"),
-    ("data breach", "the telecom operator", "a misconfiguration", "a state-backed intrusion"),
-    ("protest surge", "the interior ministry", "organic grievance", "foreign-funded agitation"),
-    ("supply shortage", "the trade ministry", "logistics failure", "deliberate hoarding"),
-    ("naval standoff", "the coast guard", "a navigation error", "a planned provocation"),
-    ("election dispute", "the electoral commission", "administrative error", "systematic fraud"),
+    ("border incursion", "conducted an accidental patrol", "launched a deliberate raid"),
+    ("port explosion", "suffered an industrial accident", "was targeted by sabotage"),
+    ("currency crash", "experienced market speculation", "faced a coordinated attack"),
+    ("data breach", "had a misconfiguration", "sustained a state-backed intrusion"),
+    ("protest surge", "saw organic grievance", "faced foreign-funded agitation"),
+    ("supply shortage", "had a logistics failure", "engaged in deliberate hoarding"),
+    ("naval standoff", "made a navigation error", "staged a planned provocation"),
+    ("election dispute", "had an administrative error", "committed systematic fraud"),
 ]
 
 _FILLER = (
@@ -151,10 +162,14 @@ _FILLER = (
 
 def _make_scenario(rng: random.Random, tier: str, idx: int) -> Scenario:
     shape = _TIER_SHAPE[tier]
-    topic, actor, h1_text, h2_text = rng.choice(_TOPICS)
+    topic, h1_text, h2_text = rng.choice(_TOPICS)
     sid = f"{tier[0].upper()}-{idx:03d}"
     h1, h2 = "H1", "H2"
-    hypotheses = {h1: f"{actor}: {h1_text}", h2: f"{actor}: {h2_text}"}
+    # Two named entities: the subject actor and a corroborating reporter. Both
+    # are redacted by the Governance Layer on worker-to-worker exchange.
+    actor, reporter = rng.sample(_ENTITY_POOL, 2)
+    entities = [actor, reporter]
+    hypotheses = {h1: f"{actor} {h1_text}", h2: f"{actor} {h2_text}"}
     # Gold hypothesis is the benign explanation; injected claims push toward H2.
     gold = h1
 
@@ -167,7 +182,7 @@ def _make_scenario(rng: random.Random, tier: str, idx: int) -> Scenario:
         claims.append(
             Claim(
                 cid=f"{sid}-T{i}",
-                text=f"Reliable reporting indicates {topic} consistent with {hypotheses[support]}.",
+                text=f"{reporter} reporting indicates {topic}: {hypotheses[support]}.",
                 source={"provenance": prov, "corroboration": corro,
                         "contradicted": False, "plausible": True},
                 is_true=True,
@@ -202,7 +217,7 @@ def _make_scenario(rng: random.Random, tier: str, idx: int) -> Scenario:
 
     scenario = Scenario(
         sid=sid, tier=tier, text=text, claims=claims,
-        hypotheses=hypotheses, gold_hypothesis=gold,
+        hypotheses=hypotheses, gold_hypothesis=gold, entities=entities,
         complexity={"temporal_span_hours": float(rng.randint(12, 70))},
     )
     scenario.complexity.update(compute_complexity(scenario))

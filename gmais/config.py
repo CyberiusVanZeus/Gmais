@@ -105,6 +105,33 @@ class GMAISConfig:
     # --- Scenario corpus ------------------------------------------------- #
     scenarios_per_tier: int = 45  # 45 x 3 tiers x 4 cells = 540 observations
 
+    # --- Observation-noise model (Section 3.2.4; see gmais.noise) --------- #
+    # The tradecraft primitives are deterministic functions of the source
+    # record, so an unperturbed run separates injected from genuine claims
+    # perfectly and yields degenerate statistics. These pre-registered rates
+    # inject the *documented* error modes of real grading and real agent
+    # discourse, so H1-H4 are tested against non-degenerate variance. Every
+    # draw is a pure function of (seed, scenario, claim, agent) and is shared
+    # across factorial cells, preserving the paired repeated-measures design.
+    noise_enabled: bool = True
+    #: P(Admiralty axis mis-graded by one step) - Baker et al. (1968) grading error.
+    grading_error_rate: float = 0.12
+    #: P(an injected claim is laundered through a plausible-looking source).
+    injection_camouflage_rate: float = 0.18
+    #: P(a genuine claim presents with degraded provenance).
+    provenance_degradation_rate: float = 0.10
+    #: P(a worker herds onto the entity-anchored hypothesis) when peer traffic
+    #: is UNREDACTED. Governance removes the entity label, so this is the
+    #: channel through which G can affect accuracy (and drive the H3 interaction).
+    peer_anchoring_rate: float = 0.22
+
+    # --- Wall-clock instrumentation (Section 3.3.4) ---------------------- #
+    #: Measure real elapsed time (perf_counter_ns) through every component.
+    measure_wallclock: bool = True
+    #: Discard the first N (scenario, cell) pairs from timing summaries so
+    #: interpreter warm-up and import-time JIT effects do not bias the mean.
+    timing_warmup_observations: int = 12
+
     # --- LLM backend ----------------------------------------------------- #
     backend: str = "mock"  # "mock" | "openai"
     model: str = "gmais-mva-q4_k_m"
@@ -115,6 +142,13 @@ class GMAISConfig:
                 f"Security-Tax weights must satisfy alpha + beta = 1 "
                 f"(got {self.st_alpha} + {self.st_beta})"
             )
+        for field_name in (
+            "grading_error_rate", "injection_camouflage_rate",
+            "provenance_degradation_rate", "peer_anchoring_rate",
+        ):
+            rate = getattr(self, field_name)
+            if not 0.0 <= rate <= 1.0:
+                raise ValueError(f"{field_name} must lie in [0, 1] (got {rate})")
 
     @property
     def total_observations(self) -> int:
